@@ -2,3 +2,4 @@ config.py
 .venv
 __pycache__
 app/__pycache__
+dbScripts/usuarioPermisos.sql
