@@ -6,6 +6,10 @@ bp = Blueprint('main', __name__)
 def home():
     return render_template('home.html')
 
+
+@bp.route('/nosotros')
+def nosotros():
+    return render_template('nosotros.html')
 @bp.route('/carrito')
 def carrito():
     return render_template('carrito.html')
