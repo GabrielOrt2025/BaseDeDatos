@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tienda.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" 
+    integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <title>Tienda</title>
+</head>
+<body>
+    <!-- Aqui va el header -->
+    <!-- iheader de tienda -->
+    <section class="tienda-header">
+        <div class="tienda-nav">
+            <button class="nav-btn active">category</button>
+            
+        </div>
+        <h1 class="tienda-title">NUEVA COLECCION</h1>
+        <div class="tienda-filters">
+            <button class="filter-btn"><i class="bi bi-bag"></i></button>
+            <button class="filter-btn"><i class="bi bi-person"></i></button>
+        </div>
+    </section>
+
+    <!-- Productos -->
+    <section class="tienda-products">
+        <div class="products-container">
+            <!--Imagen 1-->
+            <div class="tienda-product-card">
+                <div class="product-img">
+                    <img src="{{ url_for('static', filename='img/tienda1.jpeg') }}" alt="">
+                </div>
+                <div class="product-details">
+                    <h3 class="product-name">Pijama de cuadros roja</h3>
+                    <p class="product-price">19 090₡</p>
+                </div>
+            </div>
+
+            <!-- Imagen 2 -->
+            <div class="tienda-product-card">
+                <div class="product-img">
+                    <img src="{{ url_for('static', filename='img/tienda2.jpeg') }}" alt="">
+                </div>
+                <div class="product-details">
+                    <h3 class="product-name">Pijama de rayas</h3>
+                    <p class="product-price">32 090₡</p>
+                </div>
+            </div>
+
+            <!-- imagen 3 -->
+            <div class="tienda-product-card">
+                <div class="product-img">
+                    <img src="{{ url_for('static', filename='img/tienda3.jpeg') }}" alt="">
+                </div>
+                <div class="product-details">
+                    <h3 class="product-name">Pijama beige </h3>
+                    <p class="product-price">23 990₡</p>
+                </div>
+            </div>
+
+            <!-- imagen 4 -->
+            <div class="tienda-product-card">
+                <div class="product-img">
+                    <img src="{{ url_for('static', filename='img/tienda4.jpeg') }}" alt="">
+                </div>
+                <div class="product-details">
+                    <h3 class="product-name">Pijama celeste</h3>
+                    <p class="product-price">14 590₡</p>
+                </div>
+            </div>
+
+            <!-- imagen 5 -->
+            <div class="tienda-product-card">
+                <div class="product-img">
+                    <img src="{{ url_for('static', filename='img/tienda5.jpeg') }}" alt="">
+                </div>
+                <div class="product-details">
+                    <h3 class="product-name">Pijama de rayas gris</h3>
+                    <p class="product-price">19 990₡</p>
+                </div>
+            </div>
+
+            <!-- imagen 6 -->
+            <div class="tienda-product-card">
+                <div class="product-img">
+                    <img src="{{ url_for('static', filename='img/tienda6.jpeg') }}" alt="">
+                </div>
+                <div class="product-details">
+                    <h3 class="product-name">Camisa negra</h3>
+                    <p class="product-price">3690₡</p>
+                </div>
+            </div>
+
+            <!--imagen 7 -->
+            <div class="tienda-product-card">
+                <div class="product-img">
+                    <img src="{{ url_for('static', filename='img/tienda7.jpeg') }}" alt="">
+                </div>
+                <div class="product-details">
+                    <h3 class="product-name">Pijama negra</h3>
+                    <p class="product-price">17 690₡</p>
+                </div>
+            </div>
+
+            <!--imagen 8 -->
+            <div class="tienda-product-card">
+                <div class="product-img">
+                    <img src="{{ url_for('static', filename='img/tienda8.jpeg') }}" alt="">
+                </div>
+                <div class="product-details">
+                    <h3 class="product-name">Pijama de cuadros beige con negro</h3>
+                    <p class="product-price">16 090₡</p>
+                </div>
+            </div>
+
+            <!-- imagen 9 -->
+            <div class="tienda-product-card">
+                <div class="product-img">
+                    <img src="{{ url_for('static', filename='img/tienda9.jpeg') }}" alt="">
+                </div>
+                <div class="product-details">
+                    <h3 class="product-name">Pijama azul con print</h3>
+                    <p class="product-price">7900₡</p>
+                </div>
+            </div>
+
+            <!-- imagen 10 -->
+            <div class="tienda-product-card">
+                <div class="product-img">
+                    <img src="{{ url_for('static', filename='img/tienda10.jpeg') }}" alt="">
+                </div>
+                <div class="product-details">
+                    <h3 class="product-name">Pijama azul</h3>
+                    <p class="product-price">8900₡</p>
+                </div>
+            </div>
+
+            <!-- imagen 11 -->
+            <div class="tienda-product-card">
+                <div class="product-img">
+                    <img src="{{ url_for('static', filename='img/tienda11.jpeg') }}" alt="">
+                </div>
+                <div class="product-details">
+                    <h3 class="product-name">Pijama blanca</h3>
+                    <p class="product-price">9900₡</p>
+                </div>
+            </div>
+
+            <!-- imagen 12 -->
+            <div class="tienda-product-card">
+                <div class="product-img">
+                    <img src="{{ url_for('static', filename='img/tienda12.jpeg') }}" alt="">
+                </div>
+                <div class="product-details">
+                    <h3 class="product-name">Pijama rosada</h3>
+                    <p class="product-price">8900₡</p>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

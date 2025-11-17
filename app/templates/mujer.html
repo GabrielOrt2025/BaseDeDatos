@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mujer.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" 
+    integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <title>Mujer - Empijamadas</title>
+</head>
+<body>
+    <!-- Mujer Header -->
+    <section class="mujer-header">
+        <h1 class="mujer-title">MUJER</h1>
+    </section>
+
+    <!-- productos -->
+    <section class="mujer-products">
+        <div class="mujer-container">
+            <!-- Producto 1 -->
+            <div class="mujer-outfit">
+                <div class="outfit-main">
+                    <img src="{{ url_for('static', filename='img/tienda1.jpeg') }}" alt="">
+                    <div class="item-info">
+                            <p class="item-name">Pijama de cuadros roja</p>
+                            <p class="item-price">16,990₡</p>
+                        </div>
+                </div>
+                <div class="outfit-details">
+                    <div class="detail-item">
+                        <img src="{{ url_for('static', filename='img/tienda2.jpeg') }}" alt="">
+                        <div class="item-info">
+                            <p class="item-name">Pijama de cuadros</p>
+                            <p class="item-price">15,990₡</p>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <img src="{{ url_for('static', filename='img/tienda4.jpeg') }}" alt="">
+                        <div class="item-info">
+                            <p class="item-name">Pijama celeste</p>
+                            <p class="item-price">12,990₡</p>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <img src="{{ url_for('static', filename='img/tienda12.jpeg') }}" alt="">
+                        <div class="item-info">
+                            <p class="item-name">Pijama rosada</p>
+                            <p class="item-price">18,990₡</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- producto 2 -->
+            <div class="mujer-outfit">
+                <div class="outfit-main">
+                    <img src="{{ url_for('static', filename='img/tienda13.jpeg') }}" alt="" >
+                    <div class="item-info">
+                            <p class="item-name">Blusa casual</p>
+                            <p class="item-price">9,990₡</p>
+                        </div>
+                </div>
+                <div class="outfit-details">
+                    <div class="detail-item">
+                        <img src="{{ url_for('static', filename='img/tienda14.jpeg') }}" alt="">
+                        <div class="item-info">
+                            <p class="item-name">Blusa casual</p>
+                            <p class="item-price">9,990₡</p>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <img src="{{ url_for('static', filename='img/tienda15.jpeg') }}" alt="">
+                        <div class="item-info">
+                            <p class="item-name">Pantalón elegante</p>
+                            <p class="item-price">14,990₡</p>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <img src="{{ url_for('static', filename='img/tienda16.jpeg') }}" alt="" >
+                        <div class="item-info">
+                            <p class="item-name">Zapatos planos</p>
+                            <p class="item-price">11,990₡</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+</html>
