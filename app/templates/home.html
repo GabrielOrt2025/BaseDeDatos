@@ -1,36 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='css/home.css') }}"
-    />
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
-      crossorigin="anonymous"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
-    />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
     <title>Document</title>
   </head>
   <body>
     <header>
-      <div class="header-container">
-        <div class="logo">
-          <div class="logo-icon">
-            <img
-              id="logo-img"
-              src="{{ url_for('static', filename='img/logo.png') }}"
-              alt=""
-            />
-          </div>
-          <span style="font-size: 20px; font-weight: bold"> Empijamadas </span>
+        <div class="header-container">
+            <div class="logo">
+                <div class="logo-icon">
+                    <img id="logo-img" src="{{ url_for('static', filename='img/logo.png') }}" alt="">
+                </div>
+                <span style="font-size: 20px; font-weight: bold;">
+                    Empijamadas
+                </span>
+            </div>
+            <div id="search-container" class="search-container" aria-hidden="true" style="display: none;">
+                <form id="search-form" class="search-form" role="search" onsubmit="return false;">
+                    <input id="search-input" class="search-input" type="search" placeholder="Buscar..." aria-label="Buscar">
+                    <button id="search-close" type="button" class="search-close btn btn-link">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </form>
+            </div>
+            <nav>
+                <a href="#">Home</a>
+                <a href="#">Tienda</a>
+                <a href="#">Mujer</a>
+                <a href="#">Hombres</a>
+                <a href="#">Gorros</a>
+                <a href="#">Sobre nosotros</a>
+                <a href="#">Contactanos</a>
+            </nav>
+            <div class="header-icons">
+                <div class="icon-placeholder" id="search-toggle" role="button" aria-label="Toggle search">
+                    <i class="bi bi-search"></i>
+                </div>
+                <div class="icon-placeholder" id="cart-icon">
+                    <i class="bi bi-cart-fill"></i>
+                </div>
+                <div class="icon-placeholder" id="user-icon">
+                    <i class="bi bi-person-circle"></i>
+                </div>
+            </div>
         </div>
         <nav>
           <a href="#">Home</a>
@@ -61,127 +77,149 @@
       </div>
     </header>
     <section class="hero">
-      <div class="hero-container">
-        <div class="hero-content">
-          <div class="badge">50% OFF Summer Super Sale</div>
-          <h1>Step into Style: Your Ultimate Fashion Destination</h1>
-          <p>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-            eiusmod tempor incididunt ut labore et dolore.
-          </p>
-          <button class="btn-primary">Shop Now →</button>
-        </div>
-        <div class="hero-image">
-          <div class="image-placeholder">
-            <img
-              id="img-hero"
-              src="{{ url_for('static', filename='img/Pijama-Mujer-TS.jpg') }}"
-              alt=""
-            />
-          </div>
+        <div class="hero-container">
+            <div class="hero-content">
+                <div class="badge">Mujer</div>
+                <h1>Sueña con estilo y comodidad</h1>
+                <p>
+                    Disfruta del lujo de la versatilidad. Estas pijamas 4 en 1 te permiten combinar 
+                    piezas para cualquier momento del día, manteniendo la máxima comodidad y un look impecable. 
+                    <strong>Duerme bien, vive mejor.</strong>
+                </p>
+                <button class="btn-primary">Agregar al carrito</button>
+            </div>
+            <div class="hero-image">
+                <div class="image-placeholder">
+                    <img id="img-hero" src="{{ url_for('static', filename='img/hero-img.1.jpeg') }}" alt="">
+                </div>
+            </div>
         </div>
       </div>
     </section>
-    <div class="features">
-      <div class="feature-card">
-        <div class="feature-icon"></div>
-        <div class="feature-content">
-          <h3>Free Shipping</h3>
-          <p>Free shipping for order above $180</p>
+     <div class="features">
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="bi bi-airplane-fill"></i>
+            </div>
+            <div class="feature-content">
+                <h3>Encarga</h3>
+                <p>Si tu pijama ideal no está en stock, la encargamos para ti.</p>
+            </div>
         </div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon"></div>
-        <div class="feature-content">
-          <h3>Flexible Payment</h3>
-          <p>Multiple secure payment options</p>
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="bi bi-truck"></i>
+            </div>
+            <div class="feature-content">
+                <h3>Delivery & Pickup</h3>
+                <p>Recibe en casa o compra en tu sede aliada más cercana.</p>
+            </div>
         </div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon"></div>
-        <div class="feature-content">
-          <h3>24x7 Support</h3>
-          <p>We support online all days</p>
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="bi bi-shop"></i>
+            </div>
+            <div class="feature-content">
+                <h3>Sedes Fisicas</h3>
+                <p>¡Ven a comprobarlo! Toca y prueba nuestras pijamas en tu sede aliada</p>
+            </div>
         </div>
       </div>
     </div>
 
     <!-- Categories Section -->
     <section class="categories">
-      <!-- Women's Category -->
-      <div class="category-card">
-        <div class="category-content">
-          <div class="category-info">
-            <h3>2500+ Items</h3>
-            <h2>For Women's</h2>
-            <p style="color: #999; margin-bottom: 20px">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do.
-            </p>
-            <ul>
-              <li>Blazers</li>
-              <li>T-Shirts and Blouses</li>
-              <li>Dresses</li>
-              <li>Jackets & Coats</li>
-              <li>Jeans</li>
-              <li>Knit</li>
-              <li>Sarees</li>
-            </ul>
-          </div>
-          <div class="category-image">
-            <div class="image-placeholder">Imagen categoría mujeres</div>
-          </div>
+        <!-- Women's Category -->
+        <div class="category-card">
+            <div class="category-content">
+                <div class="category-info">
+                    <h3>2500+ Items</h3>
+                    <h2>Mujer</h2>
+                    <p style="color: #999; margin-bottom: 20px;">
+                        Esenciales para la mujer moderna. Máxima calidad, suavidad y versatilidad. Encuentra tu comodidad ideal.
+                    </p>
+                    <ul id="women-list">
+                        <li data-image="top-1-M">Top 1</li>
+                        <li data-image="top-2-M">Top 2</li>
+                        <li data-image="top-3-M">Top 3</li>
+                        <li data-image="top-4-M">Top 4</li>
+                        <li data-image="bottom-M">Bottom</li>
+                    </ul>
+                </div>
+                <div class="category-image">
+                    <div class="image-placeholder" id="women-image">
+                        <img src="{{ url_for('static', filename='img/top-1.jpeg') }}" alt="Top 1" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                </div>
+            </div>
         </div>
       </div>
 
-      <!-- Men's Category -->
-      <div class="category-card">
-        <div class="category-content">
-          <div class="category-info">
-            <h3>1500+ Items</h3>
-            <h2>For Men's</h2>
-            <ul>
-              <li>Blazers</li>
-              <li>T-Shirts and Shirts</li>
-              <li>Jackets & Coats</li>
-              <li>Jeans</li>
-            </ul>
-          </div>
-          <div class="category-image">
-            <div class="image-placeholder">Imagen categoría hombres</div>
-          </div>
+        <!-- Men's Category -->
+        <div class="category-card">
+            <div class="category-content">
+                <div class="category-info">
+                    <h3>1500+ Items</h3>
+                    <h2>Hombres</h2>
+                    <p style="color: #999; margin-bottom: 20px;">
+                        Esenciales para el hombre moderno. Máxima calidad, suavidad y versatilidad. Encuentra tu comodidad ideal.
+                    </p>
+                    <ul id="mens-list">
+                        <li data-image="top-1-H">Top-1</li>
+                        <li data-image="top-2-H">Top-2</li>
+                        <li data-image="top-3-H">Top-3</li>
+                        <li data-image="top-4-H">Top-4</li>
+                        <li data-image="bottom-H">Bottom</li>
+
+                    </ul>
+                </div>
+                <div class="category-image">
+                    <div class="image-placeholder" id="mens-image">
+                        <img src="{{ url_for('static', filename='img/blazers.jpg') }}" alt="Blazers" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                </div>
+            </div>
         </div>
       </div>
 
-      <!-- Accessories Category -->
-      <div class="category-card full-width">
-        <div class="category-content">
-          <div class="category-info">
-            <h3>800+ Items</h3>
-            <h2>Accessories</h2>
-            <ul>
-              <li>Handbags</li>
-              <li>Watches</li>
-              <li>Sunglasses</li>
-              <li>Hat</li>
-            </ul>
-          </div>
-          <div class="category-image">
-            <div class="image-placeholder">Imagen categoría accesorios</div>
-          </div>
+        <!-- Accessories Category -->
+        <div class="category-card full-width">
+            <div class="category-content">
+                <div class="category-info">
+                    <h3>800+ Items</h3>
+                    <h2>Gorros</h2>
+                    <p style="color: #999; margin-bottom: 20px;">
+                        Gorro de satén de lujo. Cero frizz y máxima protección contra la rotura. Mantén tu cabello suave, hidratado y listo al despertar
+                    </p>
+                    <ul id="accessories-list">
+                        <li data-image="top-1-G">Top-1</li>
+                        <li data-image="top-2-G">Top-2</li>
+                        <li data-image="top-3-G">Top-3</li>
+                        <li data-image="top-4-G">Top-4</li>
+                        <li data-image="bottom-G">bottom</li>
+                    </ul>
+                </div>
+                <div class="category-image">
+                    <div class="image-placeholder" id="accessories-image">
+                        <img src="{{ url_for('static', filename='img/handbags.jpg') }}" alt="Handbags" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                </div>
+            </div>
         </div>
       </div>
     </section>
 
     <!-- Products Section -->
     <section class="products-section">
-      <div class="section-header">
-        <h3>Our Products</h3>
-        <h2>Our Top Seller Products</h2>
-        <div class="filter-tabs">
-          <button class="tab active">All</button>
-          <button class="tab">Women</button>
-          <button class="tab">Men</button>
-          <button class="tab">Accessories</button>
+        <div class="section-header">
+            <h3>Nuestros productos</h3>
+            <h2>Mas vendidos</h2>
+            <div class="fi|lter-tabs">
+                <button class="tab active">Todos</button>
+                <button class="tab">Mujer</button>
+                <button class="tab">Hombre</button>
+                <button class="tab">Gorros</button>
+            </div>
         </div>
       </div>
 
@@ -326,10 +364,70 @@
         </div>
       </div>
     </section>
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
-      crossorigin="anonymous"
-    ></script>
-  </body>
+<script 
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" 
+    integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" 
+    crossorigin="anonymous">
+</script>
+
+<script>
+    const imageMap = {
+        // Women's images
+        "top-1-M": "{{ url_for('static', filename='img/top-1.jpg') }}",
+        "top-2-M": "{{ url_for('static', filename='img/top-2.jpg') }}",
+        "top-3-M": "{{ url_for('static', filename='img/top-3.jpeg') }}",
+        "top-4-M": "{{ url_for('static', filename='img/top-4.jpeg') }}",
+        "bottom-M": "{{ url_for('static', filename='img/bottom.jpeg') }}",
+        
+        // Men's images
+        "top-1-H": "{{ url_for('static', filename='img/top-1-H.jpg') }}",
+        "top-2-H": "{{ url_for('static', filename='img/top-2-H.jpg') }}",
+        "top-3-H": "{{ url_for('static', filename='img/top-3-H.jpg') }}",
+        "top-4-H": "{{ url_for('static', filename='img/top-4-H.jpg') }}",
+        "bottom-H": "{{ url_for('static', filename='img/botttom-H.jpg') }}",
+        
+        // Accessories images
+        "top-1-G": "{{ url_for('static', filename='img/top-1-G.jpg') }}",
+        "top-2-G": "{{ url_for('static', filename='img/top-2-G.jpg') }}",
+        "top-3-G": "{{ url_for('static', filename='img/top-3-G.jpg') }}",
+        "top-4-G": "{{ url_for('static', filename='img/top-4-G.jpg') }}",
+        "bottom-G": "{{ url_for('static', filename='img/bottom-G.jpg') }}"
+    };
+
+    function changeImage(listId, imageId) {
+        const list = document.getElementById(listId);
+        const imageContainer = document.getElementById(imageId);
+
+        if (!list || !imageContainer) return;
+
+        const items = list.querySelectorAll('li');
+        items.forEach(item => {
+            item.addEventListener('mouseenter', function() {
+                const imageName = this.getAttribute('data-image');
+                const imageSrc = imageMap[imageName];
+                
+                if (imageSrc) {
+                    const img = imageContainer.querySelector('img');
+                    if (img) {
+                        img.style.opacity = '0';
+                        setTimeout(() => {
+                            img.src = imageSrc;
+                            img.alt = this.textContent;
+                            img.style.opacity = '1';
+                        }, 250);
+                    }
+                }
+            });
+        });
+    }
+
+    // Inicializar cuando el DOM esté listo
+    document.addEventListener('DOMContentLoaded', function() {
+        changeImage('women-list', 'women-image');
+        changeImage('mens-list', 'mens-image');
+        changeImage('accessories-list', 'accessories-image');
+    });
+</script>
+<script src="{{ url_for('static', filename='js/search-toggle.js') }}"></script>
+</body>
 </html>
