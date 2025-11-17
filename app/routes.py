@@ -4,9 +4,6 @@ bp = Blueprint('main', __name__)
 
 @bp.route('/')
 def home():
-<<<<<<< Updated upstream
-    return render_template('home.html')
-=======
     return render_template('home.html')
 
 @bp.route('/tienda')
@@ -20,4 +17,3 @@ def mujer():
 @bp.route('/hombre')
 def hombre():
     return render_template('hombres.html')
->>>>>>> Stashed changes
