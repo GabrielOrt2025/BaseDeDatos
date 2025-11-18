@@ -1,4 +1,5 @@
 /* =========================
+<<<<<<< Updated upstream
    CONTACTANOS ÉPICO 
    ========================= */
 
@@ -357,4 +358,124 @@
   100% {
     transform: rotate(360deg);
   }
+=======
+   CONTACTANOS BONITO
+   ========================= */
+
+.contact-section {
+    background-color: var(--bg-page, #f4f4f7);
+    padding: 60px 16px 80px;
+}
+
+/* Tarjeta centrada */
+.contact-section .container {
+    max-width: 720px;
+    margin: 0 auto;
+    background-color: var(--bg-soft, #ffffff);
+    border-radius: 24px;
+    padding: 28px 32px 32px;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+}
+
+/* Titulo y texto */
+.contact-section h2 {
+    font-size: 24px;
+    margin: 0 0 4px;
+}
+
+.contact-section > .container > p {
+    margin: 0 0 22px;
+    font-size: 14px;
+    color: var(--text-muted, #7b7b88);
+}
+
+/* Formulario */
+.contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Fila */
+.form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+/* Label */
+.form-row label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-main, #222222);
+}
+
+/* Inputs y textarea */
+.form-row input,
+.form-row textarea {
+    font-family: inherit;
+    font-size: 14px;
+    padding: 11px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--border-soft, #e2e2ec);
+    background-color: #f7f7fd;
+    outline: none;
+    transition: border-color 0.15s ease,
+                box-shadow 0.15s ease,
+                background-color 0.15s ease;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.form-row textarea {
+    min-height: 110px;
+    resize: vertical;
+}
+
+/* Estado focus */
+.form-row input:focus,
+.form-row textarea:focus {
+    border-color: var(--accent, #c459d4);
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(196, 89, 212, 0.18);
+}
+
+/* Boton */
+.contact-form .btn-primary {
+    margin-top: 4px;
+    align-self: flex-start;
+    padding: 11px 32px;
+    font-size: 12px;
+    letter-spacing: 2px;
+}
+
+/* Mensajes flash */
+.flash-message {
+    margin-bottom: 14px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    font-size: 13px;
+}
+
+.flash-success {
+    background-color: #e6f6ea;
+    color: #1c7c3b;
+}
+
+.flash-error {
+    background-color: #ffe6e6;
+    color: #b81f1f;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .contact-section {
+        padding: 40px 10px 50px;
+    }
+
+    .contact-section .container {
+        padding: 22px 18px 24px;
+        border-radius: 18px;
+    }
+>>>>>>> Stashed changes
 }
