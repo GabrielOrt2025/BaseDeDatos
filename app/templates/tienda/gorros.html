@@ -1,29 +1,12 @@
-<!DOCTYPE html>
-<html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Empijamadas - Caps & Hats</title>
-
-    <!-- Estilos -->
+{% extends "layout/base.html" %}
+{% block customCSS %}
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='css/gorros.css') }}"
+      href="{{ url_for('static', filename='css/tienda/gorros.css') }}"
     />
-
-    <!-- Fuente y iconos -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
-    />
-  </head>
-  <body>
-    <!-- Hero principal -->
+{% endblock %}
+{% block content %}
     <section class="hero">
       <div class="container hero-inner">
         <div class="hero-text">
@@ -263,12 +246,4 @@
         </div>
       </div>
     </section>
-
-    <!-- Footer simple -->
-    <footer class="main-footer">
-      <div class="container footer-inner">
-        <p>© 2025 Caps &amp; Hats. Todos los derechos reservados.</p>
-      </div>
-    </footer>
-  </body>
-</html>
+{% endblock %}

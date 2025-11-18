@@ -7,45 +7,7 @@ bp = Blueprint("main", __name__)
 
 @bp.route("/")  
 def home():
-    return render_template("home.html")
-
-@bp.route("/nosotros")
-def nosotros():
-    return render_template("nosotros.html")
-
-
-@bp.route('/carrito')
-def carrito():
-    return render_template("carrito.html")
-
-@bp.route("/cuenta")
-def cuenta():
-    return render_template("cuenta.html")
-
-@bp.route("/tienda")
-def tienda():
-    return render_template("tienda.html")
-
-@bp.route("/mujer")
-def mujer():
-    return render_template("mujer.html")
-
-@bp.route("/hombres")
-def hombre():
-    return render_template("hombres.html")
-
-@bp.route("/gorros")
-def gorros():
-    return render_template("gorros.html")
-
-@bp.route("/prueba")
-def prueba():
-    value = obtenerProductos()
-    return render_template("prueba.html", value=value)
-
-@bp.route("/checkout")
-def checkout():
-    return render_template("checkout.html")
+    return render_template("home/home.html")
 
 @bp.route("/contacto", methods=["GET", "POST"])
 def contacto():
@@ -93,4 +55,47 @@ def contacto():
         return redirect(url_for("main.contacto"))
 
     # GET
-    return render_template("contacto.html")
+    return render_template("home/contacto.html")
+
+@bp.route("/nosotros")
+def nosotros():
+    return render_template("home/nosotros.html")
+
+
+@bp.route('/carrito')
+def carrito():
+    return render_template("pago/carrito.html")
+
+
+@bp.route("/carrito/checkout")
+def checkout():
+    return render_template("pago/checkout.html")
+
+@bp.route("/cuenta")
+def cuenta():
+    return render_template("personal/cuenta.html")
+
+@bp.route("/tienda")
+def tienda():
+    return render_template("tienda/tienda.html")
+
+@bp.route("/tienda/mujer")
+def mujer():
+    return render_template("tienda/mujer.html")
+
+@bp.route("/tienda/hombres")
+def hombre():
+    return render_template("tienda/hombres.html")
+
+@bp.route("/tienda/gorros")
+def gorros():
+    return render_template("tienda/gorros.html")
+
+@bp.route("/prueba")
+def prueba():
+    value = obtenerProductos()
+    return render_template("prueba.html", value=value)
+
+@bp.route("/base")
+def base():
+    return render_template("layout/base.html")

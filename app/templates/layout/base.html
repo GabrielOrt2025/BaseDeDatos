@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="{{ url_for('static', filename='img/logo.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/layout/base.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    {% block customCSS %}
+    {% endblock %}
+    <title>{% block title %}Empijamadas{% endblock %}</title>
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <div class="logo-icon">
+                    <img id="logo-img" src="{{ url_for('static', filename='img/logo.png') }}" alt="">
+                </div>
+                <span style="font-size: 20px; font-weight: bold;">
+                    Empijamadas
+                </span>
+            </div>
+            <div id="search-container" class="search-container" aria-hidden="true" style="display: none;">
+                <form id="search-form" class="search-form" role="search" onsubmit="return false;">
+                    <input id="search-input" class="search-input" type="search" placeholder="Buscar..." aria-label="Buscar">
+                    <button id="search-close" type="button" class="search-close btn btn-link">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </form>
+            </div>
+            <nav>
+                <a href="/">Home</a>
+                <a href="/tienda">Tienda</a>
+                <a href="/tienda/mujer">Mujer</a>
+                <a href="/tienda/hombres">Hombres</a>
+                <a href="/tienda/gorros">Gorros</a>
+                <a href="/nosotros">Sobre nosotros</a>
+                <a href="/contacto">Contact Us</a>
+            </nav>
+            <div class="header-icons">
+              <a href="#" class="icon-placeholder" id="search-toggle" aria-label="Buscar">
+                <i class="bi bi-search"></i>
+              </a>
+
+              <a href="/carrito" class="icon-placeholder" id="cart-icon" aria-label="Carrito">
+                <i class="bi bi-cart-fill"></i>
+              </a>
+
+              <a href="/cuenta" class="icon-placeholder" id="user-icon" aria-label="Mi cuenta">
+                <i class="bi bi-person-circle"></i>
+              </a>
+            </div>
+
+        </div>
+      </div>
+    </header>
+    {% block content %}
+    {% endblock %}
+    <script src="{{ url_for('static', filename='js/search-toggle.js')}}"></script>
+    {% block customJS %}
+    {% endblock %}
+</body>
+</html>

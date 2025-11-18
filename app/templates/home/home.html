@@ -1,58 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
-    <title>Document</title>
-  </head>
+{% extends "layout/base.html" %}
+{% block customCSS %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/home/home.css') }}">
+{% endblock %}
+{% block title %}Home{% endblock %}
+{% block content %}
   <body>
-    <header>
-        <div class="header-container">
-            <div class="logo">
-                <div class="logo-icon">
-                    <img id="logo-img" src="{{ url_for('static', filename='img/logo.png') }}" alt="">
-                </div>
-                <span style="font-size: 20px; font-weight: bold;">
-                    Empijamadas
-                </span>
-            </div>
-            <div id="search-container" class="search-container" aria-hidden="true" style="display: none;">
-                <form id="search-form" class="search-form" role="search" onsubmit="return false;">
-                    <input id="search-input" class="search-input" type="search" placeholder="Buscar..." aria-label="Buscar">
-                    <button id="search-close" type="button" class="search-close btn btn-link">
-                        <i class="bi bi-x-lg"></i>
-                    </button>
-                </form>
-            </div>
-            <nav>
-                <a href="/home">Home</a>
-                <a href="/tienda">Tienda</a>
-                <a href="/mujer">Mujer</a>
-                <a href="/hombres">Hombres</a>
-                <a href="/gorros">Gorros</a>
-                <a href="/nosotros">Sobre nosotros</a>
-                <a href="/contacto">Contact Us</a>
-            </nav>
-            <div class="header-icons">
-              <a href="/buscar" class="icon-placeholder" id="search-toggle" aria-label="Buscar">
-                <i class="bi bi-search"></i>
-              </a>
-
-              <a href="/carrito" class="icon-placeholder" id="cart-icon" aria-label="Carrito">
-                <i class="bi bi-cart-fill"></i>
-              </a>
-
-              <a href="/cuenta" class="icon-placeholder" id="user-icon" aria-label="Mi cuenta">
-                <i class="bi bi-person-circle"></i>
-              </a>
-            </div>
-
-        </div>
-      </div>
-    </header>
     <section class="hero">
         <div class="hero-container">
             <div class="hero-content">
@@ -341,70 +293,64 @@
         </div>
       </div>
     </section>
-<script 
-    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" 
-    integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" 
-    crossorigin="anonymous">
-</script>
+  {% endblock %}
+{% block customJS %}
+  <script>
+      const imageMap = {
+          // Women's images
+          "top-1-M": "{{ url_for('static', filename='img/top-1.jpg') }}",
+          "top-2-M": "{{ url_for('static', filename='img/top-2.jpg') }}",
+          "top-3-M": "{{ url_for('static', filename='img/top-3.jpeg') }}",
+          "top-4-M": "{{ url_for('static', filename='img/top-4.jpeg') }}",
+          "bottom-M": "{{ url_for('static', filename='img/bottom.jpeg') }}",
+          
+          // Men's images
+          "top-1-H": "{{ url_for('static', filename='img/top-1-H.jpg') }}",
+          "top-2-H": "{{ url_for('static', filename='img/top-2-H.jpg') }}",
+          "top-3-H": "{{ url_for('static', filename='img/top-3-H.jpg') }}",
+          "top-4-H": "{{ url_for('static', filename='img/top-4-H.jpg') }}",
+          "bottom-H": "{{ url_for('static', filename='img/botttom-H.jpg') }}",
+          
+          // Accessories images
+          "top-1-G": "{{ url_for('static', filename='img/top-1-G.jpg') }}",
+          "top-2-G": "{{ url_for('static', filename='img/top-2-G.jpg') }}",
+          "top-3-G": "{{ url_for('static', filename='img/top-3-G.jpg') }}",
+          "top-4-G": "{{ url_for('static', filename='img/top-4-G.jpg') }}",
+          "bottom-G": "{{ url_for('static', filename='img/bottom-G.jpg') }}"
+      };
 
-<script>
-    const imageMap = {
-        // Women's images
-        "top-1-M": "{{ url_for('static', filename='img/top-1.jpg') }}",
-        "top-2-M": "{{ url_for('static', filename='img/top-2.jpg') }}",
-        "top-3-M": "{{ url_for('static', filename='img/top-3.jpeg') }}",
-        "top-4-M": "{{ url_for('static', filename='img/top-4.jpeg') }}",
-        "bottom-M": "{{ url_for('static', filename='img/bottom.jpeg') }}",
-        
-        // Men's images
-        "top-1-H": "{{ url_for('static', filename='img/top-1-H.jpg') }}",
-        "top-2-H": "{{ url_for('static', filename='img/top-2-H.jpg') }}",
-        "top-3-H": "{{ url_for('static', filename='img/top-3-H.jpg') }}",
-        "top-4-H": "{{ url_for('static', filename='img/top-4-H.jpg') }}",
-        "bottom-H": "{{ url_for('static', filename='img/botttom-H.jpg') }}",
-        
-        // Accessories images
-        "top-1-G": "{{ url_for('static', filename='img/top-1-G.jpg') }}",
-        "top-2-G": "{{ url_for('static', filename='img/top-2-G.jpg') }}",
-        "top-3-G": "{{ url_for('static', filename='img/top-3-G.jpg') }}",
-        "top-4-G": "{{ url_for('static', filename='img/top-4-G.jpg') }}",
-        "bottom-G": "{{ url_for('static', filename='img/bottom-G.jpg') }}"
-    };
+      function changeImage(listId, imageId) {
+          const list = document.getElementById(listId);
+          const imageContainer = document.getElementById(imageId);
 
-    function changeImage(listId, imageId) {
-        const list = document.getElementById(listId);
-        const imageContainer = document.getElementById(imageId);
+          if (!list || !imageContainer) return;
 
-        if (!list || !imageContainer) return;
+          const items = list.querySelectorAll('li');
+          items.forEach(item => {
+              item.addEventListener('mouseenter', function() {
+                  const imageName = this.getAttribute('data-image');
+                  const imageSrc = imageMap[imageName];
+                  
+                  if (imageSrc) {
+                      const img = imageContainer.querySelector('img');
+                      if (img) {
+                          img.style.opacity = '0';
+                          setTimeout(() => {
+                              img.src = imageSrc;
+                              img.alt = this.textContent;
+                              img.style.opacity = '1';
+                          }, 250);
+                      }
+                  }
+              });
+          });
+      }
 
-        const items = list.querySelectorAll('li');
-        items.forEach(item => {
-            item.addEventListener('mouseenter', function() {
-                const imageName = this.getAttribute('data-image');
-                const imageSrc = imageMap[imageName];
-                
-                if (imageSrc) {
-                    const img = imageContainer.querySelector('img');
-                    if (img) {
-                        img.style.opacity = '0';
-                        setTimeout(() => {
-                            img.src = imageSrc;
-                            img.alt = this.textContent;
-                            img.style.opacity = '1';
-                        }, 250);
-                    }
-                }
-            });
-        });
-    }
-
-    // Inicializar cuando el DOM esté listo
-    document.addEventListener('DOMContentLoaded', function() {
-        changeImage('women-list', 'women-image');
-        changeImage('mens-list', 'mens-image');
-        changeImage('accessories-list', 'accessories-image');
-    });
-</script>
-<script src="{{ url_for('static', filename='js/search-toggle.js') }}"></script>
-</body>
-</html>
+      // Inicializar cuando el DOM esté listo
+      document.addEventListener('DOMContentLoaded', function() {
+          changeImage('women-list', 'women-image');
+          changeImage('mens-list', 'mens-image');
+          changeImage('accessories-list', 'accessories-image');
+      });
+  </script>
+{% endblock %}

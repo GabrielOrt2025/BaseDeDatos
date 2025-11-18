@@ -1,18 +1,15 @@
-<!DOCTYPE html>
-<html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pijamas TS - Shopping Cart</title>
+{% extends "layout/base.html" %}
+{% block customCSS %}
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='css/carrito.css') }}"
+      href="{{ url_for('static', filename='css/pago/carrito.css') }}"
     />
-  </head>
+{% endblock %}
+{% block content %}
   <body>
     <div class="hero-section">
-      <h1>🛒 Carrito de Compras</h1>
-      <div class="breadcrumb"><a href="#">Home</a> / Shopping Cart</div>
+      <h1><i class="bi bi-cart-fill"></i> Carrito de Compras</h1>
+      <div class="breadcrumb"><a href="/">Home</a> / Shopping Cart</div>
     </div>
 
     <div class="container">
@@ -200,9 +197,10 @@
         </div>
       </div>
     </footer>
+{% endblock %}
+{% block customJS %}
     <script>
       window.STATIC_URL_PREFIX = "{{ url_for('static', filename='') }}";
     </script>
     <script src="{{ url_for('static', filename='js/carrito.js') }}"></script>
-  </body>
-</html>
+{% endblock %}
