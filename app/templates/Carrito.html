@@ -3,35 +3,206 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Carrito de Compras</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/carrito.css') }}">
+    <title>Pijamas TS - Shopping Cart</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/carrito.css') }}"
+    />
   </head>
-
   <body>
+    <div class="hero-section">
+      <h1>🛒 Carrito de Compras</h1>
+      <div class="breadcrumb"><a href="#">Home</a> / Shopping Cart</div>
+    </div>
+
     <div class="container">
-      <div class="nav">
-        <button onclick="mostrarProductos()">Productos</button>
-        <button onclick="mostrarCarrito()">
-          🛒 Carrito
-          <span class="cart-count" id="cartCount">0</span>
+      <div>
+        <div class="cart-table">
+          <div class="table-header">
+            <div>Producto</div>
+            <div>Precio</div>
+            <div>Cantidad</div>
+            <div>Subtotal</div>
+          </div>
+          <div id="cartItems"></div>
+          <div class="coupon-section">
+            <input
+              type="text"
+              class="coupon-input"
+              placeholder="Código de Cupón"
+              id="couponInput"
+            />
+            <button class="apply-btn" onclick="applyCoupon()">
+              Aplicar Cupón
+            </button>
+            <button class="clear-cart" onclick="clearCart()">
+              Limpiar Carrito
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="order-summary">
+        <h3 class="summary-title">Resumen de Orden</h3>
+        <div class="summary-row">
+          <span>Items</span>
+          <span id="itemCount">9</span>
+        </div>
+        <div class="summary-row">
+          <span>Sub Total</span>
+          <span id="subtotal">$306.00</span>
+        </div>
+        <div class="summary-row">
+          <span>Envío</span>
+          <span id="shipping">$0.00</span>
+        </div>
+        <div class="summary-row">
+          <span>Impuestos</span>
+          <span id="taxes">$0.00</span>
+        </div>
+        <div
+          class="summary-row discount"
+          id="discountRow"
+          style="display: none"
+        >
+          <span>Descuento Cupón</span>
+          <span id="discount">-$0.00</span>
+        </div>
+        <div class="summary-row total">
+          <span>Total</span>
+          <span id="total">$270.00</span>
+        </div>
+        <button class="checkout-btn" onclick="checkout()">
+          Proceder al Checkout
         </button>
       </div>
+    </div>
 
-      <div id="mensaje" class="mensaje hidden"></div>
-
-      <!-- Sección de Productos -->
-      <div id="productosSeccion">
-        <h1>Nuestros Productos</h1>
-        <div class="productos" id="productosContainer"></div>
+    <div class="features">
+      <div class="feature-card">
+        <div class="feature-icon">📦</div>
+        <div>
+          <div class="feature-title">Envío Gratuito</div>
+          <div class="feature-desc">
+            Envío gratis para pedidos superiores a $50
+          </div>
+        </div>
       </div>
-
-      <!-- Sección de Carrito -->
-      <div id="carritoSeccion" class="hidden">
-        <h1>Mi Carrito</h1>
-        <div id="carritoContainer"></div>
-        <div id="totalContainer"></div>
+      <div class="feature-card">
+        <div class="feature-icon">💳</div>
+        <div>
+          <div class="feature-title">Pago Flexible</div>
+          <div class="feature-desc">Múltiples opciones de pago seguro</div>
+        </div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎧</div>
+        <div>
+          <div class="feature-title">Soporte 24/7</div>
+          <div class="feature-desc">Te apoyamos en línea todos los días</div>
+        </div>
       </div>
     </div>
-  </body>
 
+    <div class="newsletter">
+      <h4 style="color: #6b7280; font-weight: 500; margin-bottom: 10px">
+        Nuestro Newsletter
+      </h4>
+      <h2>
+        Suscríbete a Nuestro Newsletter para<br />Obtener
+        <span>Actualizaciones de Nuestras Últimas Ofertas</span>
+      </h2>
+      <p>
+        Obtén 25% de descuento en tu primera orden solo suscribiéndote a nuestro
+        newsletter
+      </p>
+      <div class="newsletter-form">
+        <input
+          type="email"
+          class="newsletter-input"
+          placeholder="Ingresa tu correo electrónico"
+          id="emailInput"
+        />
+        <button class="subscribe-btn" onclick="subscribe()">Suscribirse</button>
+      </div>
+    </div>
+
+    <footer>
+      <div class="footer-content">
+        <div>
+          <div class="footer-brand">
+            <div class="logo-icon">🌙</div>
+            Pijamas TS
+          </div>
+          <p class="footer-desc">
+            Comodidad y estilo para tus noches de descanso. Productos premium de
+            la más alta calidad.
+          </p>
+          <div class="footer-social">
+            <a href="#" class="social-btn">📘</a>
+            <a href="#" class="social-btn">✖️</a>
+            <a href="#" class="social-btn">📌</a>
+            <a href="#" class="social-btn">📷</a>
+            <a href="#" class="social-btn">▶️</a>
+          </div>
+        </div>
+        <div>
+          <h4 class="footer-title">Compañía</h4>
+          <ul class="footer-links">
+            <li><a href="#">Sobre Nosotros</a></li>
+            <li><a href="#">Blog</a></li>
+            <li><a href="#">Contáctanos</a></li>
+            <li><a href="#">Carrera</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="footer-title">Servicio al Cliente</h4>
+          <ul class="footer-links">
+            <li><a href="#">Mi Cuenta</a></li>
+            <li><a href="#">Rastrear Pedido</a></li>
+            <li><a href="#">Devoluciones</a></li>
+            <li><a href="#">FAQ</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="footer-title">Nuestra Información</h4>
+          <ul class="footer-links">
+            <li><a href="#">Privacidad</a></li>
+            <li><a href="#">Términos y Condiciones</a></li>
+            <li><a href="#">Política de Devolución</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="footer-title">Info de Contacto</h4>
+          <ul class="footer-links">
+            <li><a href="#">+0123-456-789</a></li>
+            <li><a href="#">example@gmail.com</a></li>
+            <li>
+              <a href="#">8502 Preston Rd.<br />Inglewood, Maine 98380</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div>
+          Copyright © 2025 <strong>Pijamas TS Website.</strong> Todos los
+          derechos reservados
+        </div>
+        <div class="language-select">
+          <select>
+            <option>Español</option>
+            <option>English</option>
+          </select>
+          <select>
+            <option>USD</option>
+            <option>EUR</option>
+          </select>
+        </div>
+      </div>
+    </footer>
+    <script>
+      window.STATIC_URL_PREFIX = "{{ url_for('static', filename='') }}";
+    </script>
+    <script src="{{ url_for('static', filename='js/carrito.js') }}"></script>
+  </body>
 </html>

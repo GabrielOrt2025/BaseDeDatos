@@ -21,42 +21,43 @@
   </head>
   <body>
     <header>
-      <div class="header-container">
-        <div class="logo">
-          <div class="logo-icon">
-            <img
-              id="logo-img"
-              src="{{ url_for('static', filename='img/logo.png') }}"
-              alt=""
-            />
-          </div>
-          <span style="font-size: 20px; font-weight: bold"> Empijamadas </span>
-        </div>
-        <nav>
-          <a href="#">Home</a>
-          <a href="#">Tienda</a>
-          <a href="#">Mujer</a>
-          <a href="#">Hombres</a>
-          <a href="#">Gorros</a>
-          <a href="#">Sobre nosotros</a>
-          <a href="#">Contact Us</a>
-        </nav>
-        <div class="header-icons">
-          <a href="/" class="icon-link">
-            <button class="icon-btn" aria-label="Buscar">
-              <i class="bi bi-search"></i>
-            </button>
-          </a>
-          <a href="/carrito" class="icon-link">
-            <button class="icon-btn" aria-label="Carrito de compras">
-              <i class="bi bi-cart-fill"></i>
-            </button>
-          </a>
-          <a href="/cuenta" class="icon-link">
-            <button class="icon-btn" aria-label="Mi Perfil">
-              <i class="bi bi-person-circle"></i>
-            </button>
-          </a>
+        <div class="header-container">
+            <div class="logo">
+                <div class="logo-icon">
+                    <img id="logo-img" src="{{ url_for('static', filename='img/logo.png') }}" alt="">
+                </div>
+                <span style="font-size: 20px; font-weight: bold;">
+                    Empijamadas
+                </span>
+            </div>
+            <div id="search-container" class="search-container" aria-hidden="true" style="display: none;">
+                <form id="search-form" class="search-form" role="search" onsubmit="return false;">
+                    <input id="search-input" class="search-input" type="search" placeholder="Buscar..." aria-label="Buscar">
+                    <button id="search-close" type="button" class="search-close btn btn-link">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </form>
+            </div>
+            <nav>
+                <a href="#">Home</a>
+                <a href="#">Tienda</a>
+                <a href="#">Mujer</a>
+                <a href="#">Hombres</a>
+                <a href="#">Gorros</a>
+                <a href="/nosotros">Sobre nosotros</a>
+                <a href="#">Contact Us</a>
+            </nav>
+            <div class="header-icons">
+                <div class="icon-placeholder" id="search-toggle" role="button" aria-label="Toggle search">
+                    <i class="bi bi-search"></i>
+                </div>
+                <div class="icon-placeholder" id="cart-icon">
+                    <i class="bi bi-cart-fill"></i>
+                </div>
+                <div class="icon-placeholder" id="user-icon">
+                    <i class="bi bi-person-circle"></i>
+                </div>
+            </div>
         </div>
       </div>
     </header>

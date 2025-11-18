@@ -8,7 +8,10 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
     />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/cuenta.css') }}">
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/cuenta.css') }}"
+    />
   </head>
   <body>
     <!-- Contenedor Principal -->
@@ -87,7 +90,7 @@
             </div>
           </section>
 
-          <!-- Sección Mis Pedidos -->
+          <!-- Seccion Mis Pedidos -->
           <section id="pedidos" class="seccion">
             <div class="seccion-header">
               <h2>Mis Pedidos</h2>
@@ -106,10 +109,14 @@
                 <div class="pedido-productos">
                   <div class="producto-mini">
                     <div class="producto-mini-img">
-                      <i class="bi bi-moon-stars"></i>
+                      <img
+                        src="{{ url_for('static', filename='img/tienda1.jpeg') }}"
+                        alt="Pijama Clasica Satin"
+                        class="producto-img-preview"
+                      />
                     </div>
                     <div>
-                      <p class="producto-mini-nombre">Pijama Clásica Satín</p>
+                      <p class="producto-mini-nombre">Pijama Clasica Satin</p>
                       <p class="producto-mini-precio">$45.99</p>
                     </div>
                   </div>
@@ -132,11 +139,15 @@
                 <div class="pedido-productos">
                   <div class="producto-mini">
                     <div class="producto-mini-img">
-                      <i class="bi bi-heart-fill"></i>
+                      <img
+                        src="{{ url_for('static', filename='img/tienda2.jpeg') }}"
+                        alt="Pijama Algodon Organico"
+                        class="producto-img-preview"
+                      />
                     </div>
                     <div>
                       <p class="producto-mini-nombre">
-                        Pijama Algodón Orgánico
+                        Pijama Algodon Organico
                       </p>
                       <p class="producto-mini-precio">$52.99</p>
                     </div>
@@ -160,7 +171,11 @@
                 <div class="pedido-productos">
                   <div class="producto-mini">
                     <div class="producto-mini-img">
-                      <i class="bi bi-gift"></i>
+                      <img
+                        src="{{ url_for('static', filename='img/tienda3.jpeg') }}"
+                        alt="Set Regalo Premium"
+                        class="producto-img-preview"
+                      />
                     </div>
                     <div>
                       <p class="producto-mini-nombre">Set Regalo Premium</p>
@@ -225,7 +240,7 @@
             </div>
           </section>
 
-          <!-- Sección Favoritos -->
+          <!-- Seccion Favoritos -->
           <section id="favoritos" class="seccion">
             <div class="seccion-header">
               <h2>Mis Favoritos</h2>
@@ -237,10 +252,13 @@
                   <i class="bi bi-heart-fill"></i>
                 </button>
                 <div class="favorito-img">
-                  <i class="bi bi-moon-stars"></i>
+                  <img
+                    src="{{ url_for('static', filename='img/tienda4.jpeg') }}"
+                    alt="Pijama Clasica Satin"
+                  />
                 </div>
                 <div class="favorito-info">
-                  <h4>Pijama Clásica Satín</h4>
+                  <h4>Pijama Clasica Satin</h4>
                   <p class="favorito-precio">$45.99</p>
                   <button class="btn-primario" onclick="agregarAlCarrito(1)">
                     Agregar al Carrito
@@ -253,7 +271,10 @@
                   <i class="bi bi-heart-fill"></i>
                 </button>
                 <div class="favorito-img">
-                  <i class="bi bi-stars"></i>
+                  <img
+                    src="{{ url_for('static', filename='img/tienda5.jpeg') }}"
+                    alt="Bata de Lujo"
+                  />
                 </div>
                 <div class="favorito-info">
                   <h4>Bata de Lujo</h4>
@@ -269,7 +290,10 @@
                   <i class="bi bi-heart-fill"></i>
                 </button>
                 <div class="favorito-img">
-                  <i class="bi bi-gift"></i>
+                  <img
+                    src="{{ url_for('static', filename='img/tienda6.jpeg') }}"
+                    alt="Set Regalo Premium"
+                  />
                 </div>
                 <div class="favorito-info">
                   <h4>Set Regalo Premium</h4>
@@ -339,7 +363,6 @@
         </main>
       </div>
     </div>
-
-    <script src="cuenta.js"></script>
+    <script src="{{ url_for('static', filename='js/cuenta.js') }}"></script>
   </body>
 </html>
