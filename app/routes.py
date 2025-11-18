@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, request
+from .database.conexionDB import obtenerProductos
 
 bp = Blueprint('main', __name__)
 
@@ -28,3 +29,8 @@ def mujer():
 @bp.route('/hombre')
 def hombre():
     return render_template('hombres.html')
+
+@bp.route('/prueba')
+def prueba():
+    value = obtenerProductos()
+    return render_template('prueba.html', value=value)
