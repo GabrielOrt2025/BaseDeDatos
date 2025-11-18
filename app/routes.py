@@ -30,6 +30,10 @@ def mujer():
 def hombre():
     return render_template('hombres.html')
 
+@bp.route('/gorro')
+def gorro():
+    return render_template('gorro.html')
+
 @bp.route('/prueba')
 def prueba():
     value = obtenerProductos()

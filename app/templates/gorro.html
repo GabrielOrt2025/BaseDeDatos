@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gorros</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/gorro.css') }}">
+</head>
+<body>
+    <div class="breadcrumb">
+        <nav class="breadcrumb-nav">
+            <a href="/">Home</a>
+            <span>></span>
+            <a href="/tienda">Tienda</a>
+            <span>></span>
+            <span class="active">Gorros</span>
+        </nav>
+    </div>
+    
+    <div class="title-section">
+        <h1>Gorros</h1>
+    </div>
+
+    <div class="category-nav">
+        <div class="nav-container">
+            <div class="nav-tabs">
+                <button class="nav-tab active" data-filter="todos">Todos</button>
+                <button class="nav-tab" data-filter="nueva-coleccion">Nueva Colección</button>
+                <button class="nav-tab" data-filter="premium">Premium</button>
+                <button class="nav-tab" data-filter="ofertas">Ofertas</button>
+            </div>
+            <div class="nav-right">
+                <span class="product-count" id="productCount">4 productos</span>
+                <button class="filter-btn" id="filterBtn">
+                    <span>Filtrar</span>
+                    <i class="bi bi-chevron-down"></i>
+                </button>
+                <div class="filter-dropdown" id="filterDropdown">
+                    <div class="filter-option" data-sort="precio-asc">Precio: Menor a Mayor</div>
+                    <div class="filter-option" data-sort="precio-desc">Precio: Mayor a Menor</div>
+                    <div class="filter-option" data-sort="nombre">Nombre A-Z</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--productos -->
+    <section class="products-section">
+        <div class="products-grid">
+
+            <div class="product-card" data-category="ofertas" data-price="6990" data-name="Gorro de satén">
+                <div class="product-img">
+                    <img src="{{ url_for('static', filename='img/tienda18.jpeg') }}" alt="Gorro de satén">
+                </div>
+                <div class="product-details">
+                    <h3 class="product-name">Gorro de satén</h3>
+                    <p class="product-price">₡6 990</p>
+                </div>
+            </div>
+
+            <div class="product-card" data-category="nueva-coleccion" data-price="8990" data-name="Gorro deluxe">
+                <div class="product-img">
+                    <img src="{{ url_for('static', filename='img/tienda19.jpeg') }}" alt="Gorro deluxe">
+                </div>
+                <div class="product-details">
+                    <h3 class="product-name">Gorro deluxe</h3>
+                    <p class="product-price">₡8 990</p>
+                </div>
+            </div>
+
+            <div class="product-card" data-category="premium" data-price="9990" data-name="Gorro premium">
+                <div class="product-img">
+                    <img src="{{ url_for('static', filename='img/tienda20.jpeg') }}" alt="Gorro premium">
+                </div>
+                <div class="product-details">
+                    <h3 class="product-name">Gorro premium</h3>
+                    <p class="product-price">₡9 990</p>
+                </div>
+            </div>
+
+            <div class="product-card" data-category="premium" data-price="22990" data-name="Satai perla">
+                <div class="product-img">
+                    <img src="{{ url_for('static', filename='img/tienda21.jpeg') }}" alt="Satai perla">
+                </div>
+                <div class="product-details">
+                    <h3 class="product-name">Satai perla</h3>
+                    <p class="product-price">₡22 990</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+
+    <script src="{{ url_for('static', filename='js/filtro.js') }}"></script>
+</body>
+</html>
