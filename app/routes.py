@@ -1,5 +1,5 @@
 from flask import Blueprint,jsonify,render_template,request,session,flash,redirect,url_for,current_app
-from .database.conexionDB import obtenerProductos
+from .database.sp.pa import obtenerProductos
 import smtplib
 from email.message import EmailMessage
 
