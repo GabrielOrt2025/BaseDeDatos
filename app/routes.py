@@ -13,10 +13,7 @@ def home():
 def nosotros():
     return render_template("nosotros.html")
 
-@bp.route('/nosotros')
-def nosotros():
-    return render_template('nosotros.html')
-  
+
 @bp.route('/carrito')
 def carrito():
     return render_template("carrito.html")
@@ -67,50 +64,33 @@ def contacto():
             flash("Config de correo no valida en el servidor.", "error")
             return redirect(url_for("main.contacto"))
 
-        cuerpo = f"""Nuevo mensaje desde Empijamadas:
+        #cuerpo = f"""Nuevo mensaje desde Empijamadas:
 
-Nombre: {nombre}
-Email: {email}
+        # Nombre: {nombre}
+        # Email: {email}
 
-Mensaje:
-{mensaje}
-"""
+        # Mensaje:
+        # {mensaje}
+            # """
 
-        msg = EmailMessage()
-        msg["Subject"] = "Nuevo mensaje de contacto - Empijamadas"
-        msg["From"] = email_user
-        msg["To"] = email_to
-        msg.set_content(cuerpo)
+#         msg = EmailMessage()
+#         msg["Subject"] = "Nuevo mensaje de contacto - Empijamadas"
+#         msg["From"] = email_user
+#         msg["To"] = email_to
+#         msg.set_content(cuerpo)
 
-        try:
-            with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-                smtp.login(email_user, email_pass)
-                smtp.send_message(msg)
+#         try:
+#             with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+#                 smtp.login(email_user, email_pass)
+#                 smtp.send_message(msg)
 
-            flash("Gracias por escribirnos, pronto te respondemos.", "success")
-        except Exception as e:
-            # para debug en consola
-            print("Error enviando correo:", e)
-            flash("Hubo un error enviando tu mensaje. Intenta de nuevo mas tarde.", "error")
+#             flash("Gracias por escribirnos, pronto te respondemos.", "success")
+#         except Exception as e:
+#             # para debug en consola
+#             print("Error enviando correo:", e)
+#             flash("Hubo un error enviando tu mensaje. Intenta de nuevo mas tarde.", "error")
 
         return redirect(url_for("main.contacto"))
 
     # GET
     return render_template("contacto.html")
-    return render_template('cuenta.html')
-@bp.route('/tienda')
-def tienda():
-    return render_template('tienda.html')
-
-@bp.route('/mujer')
-def mujer():
-    return render_template('mujer.html')
-
-@bp.route('/hombre')
-def hombre():
-    return render_template('hombres.html')
-
-@bp.route('/prueba')
-def prueba():
-    value = obtenerProductos()
-    return render_template('prueba.html', value=value)
