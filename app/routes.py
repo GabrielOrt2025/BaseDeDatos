@@ -1,25 +1,11 @@
-<<<<<<< Updated upstream
-from flask import Blueprint,jsonify,render_template,request,session,flash,redirect,url_for,current_app,
-=======
 from flask import Blueprint,jsonify,render_template,request,session,flash,redirect,url_for,current_app
->>>>>>> Stashed changes
-
+from .database.conexionDB import obtenerProductos
 import smtplib
 from email.message import EmailMessage
 
-from .database.conexionDB import obtenerProductos
-
 bp = Blueprint("main", __name__)
 
-# =========================
-# RUTAS NORMALES
-# =========================
-
-<<<<<<< Updated upstream
-@bp.route("/")
-=======
 @bp.route("/")  
->>>>>>> Stashed changes
 def home():
     return render_template("home.html")
 
@@ -27,7 +13,11 @@ def home():
 def nosotros():
     return render_template("nosotros.html")
 
-@bp.route("/carrito")
+@bp.route('/nosotros')
+def nosotros():
+    return render_template('nosotros.html')
+  
+@bp.route('/carrito')
 def carrito():
     return render_template("carrito.html")
 
@@ -59,11 +49,6 @@ def prueba():
 @bp.route("/checkout")
 def checkout():
     return render_template("checkout.html")
-
-
-# =========================
-# RUTA CONTACTO
-# =========================
 
 @bp.route("/contacto", methods=["GET", "POST"])
 def contacto():
@@ -112,3 +97,20 @@ Mensaje:
 
     # GET
     return render_template("contacto.html")
+    return render_template('cuenta.html')
+@bp.route('/tienda')
+def tienda():
+    return render_template('tienda.html')
+
+@bp.route('/mujer')
+def mujer():
+    return render_template('mujer.html')
+
+@bp.route('/hombre')
+def hombre():
+    return render_template('hombres.html')
+
+@bp.route('/prueba')
+def prueba():
+    value = obtenerProductos()
+    return render_template('prueba.html', value=value)
