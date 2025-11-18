@@ -1,4 +1,8 @@
+<<<<<<< Updated upstream
 from flask import Blueprint,jsonify,render_template,request,session,flash,redirect,url_for,current_app,
+=======
+from flask import Blueprint,jsonify,render_template,request,session,flash,redirect,url_for,current_app
+>>>>>>> Stashed changes
 
 import smtplib
 from email.message import EmailMessage
@@ -11,7 +15,11 @@ bp = Blueprint("main", __name__)
 # RUTAS NORMALES
 # =========================
 
+<<<<<<< Updated upstream
 @bp.route("/")
+=======
+@bp.route("/")  
+>>>>>>> Stashed changes
 def home():
     return render_template("home.html")
 
