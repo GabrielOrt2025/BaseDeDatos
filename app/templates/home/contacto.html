@@ -1,23 +1,11 @@
-<!DOCTYPE html>
-<html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Contacto - Empijamadas</title>
+{% extends "layout/base.html" %}
+{% block customCSS %}
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='css/contacto.css') }}"
+      href="{{ url_for('static', filename='css/home/contacto.css') }}"
     />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-  </head>
-  <body>
-    <!-- si quieres, puedes copiar tu header normal aqui -->
-    <!-- o simplemente dejar solo el formulario -->
-
+{% endblock %}
+{% block content %}
     <main class="gorros-page">
       <section class="contact-section">
         <div class="container">
@@ -60,5 +48,4 @@
         </div>
       </section>
     </main>
-  </body>
-</html>
+{% endblock %}

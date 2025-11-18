@@ -14,9 +14,9 @@ body {
 
 /* Hero Section */
 .hero-section {
-  background: linear-gradient(135deg, #d4b5e3 0%, #b794c9 50%, #9b7bb3 100%);
+  background: linear-gradient(135deg, #d4b5e3 0%, #bea9c9 50%, #a189b4 100%);
   color: #2d2d2d;
-  padding: 80px 20px;
+  padding: 10px 20px;
   text-align: center;
   margin-bottom: 50px;
   position: relative;
@@ -53,7 +53,7 @@ body {
 }
 
 .hero-section h1 {
-  font-size: 3rem;
+  font-size: 2rem;
   margin-bottom: 15px;
   font-weight: 700;
   color: #2d2d2d;

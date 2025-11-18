@@ -1,13 +1,11 @@
 /* Hombres Styles */
 .hombres-header {
-    font-family: "Poppins", sans-serif;
     background-color: white;
     padding: 40px 20px;
     text-align: center;
 }
 
 .hombres-title {
-    font-family: "Poppins", sans-serif;
     font-size: 42px;
     font-weight: 900;
     letter-spacing: 8px;
@@ -16,7 +14,6 @@
 
 /* Products Section */
 .hombres-products {
-    font-family: "Poppins", sans-serif;
     background-color: #fafafa;
     padding: 60px 20px;
     min-height: 100vh;
@@ -89,7 +86,6 @@
 }
 
 .item-name {
-    font-family: "Poppins", sans-serif;
     font-size: 14px;
     font-weight: 500;
     color: #333;
@@ -98,7 +94,6 @@
 }
 
 .item-price {
-    font-family: "Poppins", sans-serif;
     font-size: 15px;
     font-weight: 600;
     color: #000;

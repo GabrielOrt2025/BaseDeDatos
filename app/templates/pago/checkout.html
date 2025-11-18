@@ -1,13 +1,11 @@
-<!DOCTYPE html>
-<html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Checkout - Tienda de Pijamas</title>
+{% extends "layout/base.html" %}
+{% block customCSS %}
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='css/checkout.css') }}"
+      href="{{ url_for('static', filename='css/pago/checkout.css') }}"
     />
+{% endblock %}
+{% block content %}
   </head>
   <body>
     <div class="checkout-container">
@@ -91,6 +89,7 @@
         </div>
       </div>
     </div>
-  </body>
+{% endblock %}
+{% block customJS %}
   <script src="{{ url_for('static', filename='js/checkout.js') }}"></script>
-</html>
+{% endblock %}

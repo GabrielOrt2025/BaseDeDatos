@@ -1,28 +1,17 @@
-<!DOCTYPE html>
-<html lang="es">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+{% extends "layout/base.html" %}
+{% block customCSS %}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/nosotros.css') }}">
-</head>
-
-<body>
-
-
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home/nosotros.css') }}">
+{% endblock %}
+{% block content %}
     <div class="container">
         <div class="hero-title">
             <h1>Quiénes Somos</h1>
             <div class="underline"></div>
         </div>
     </div>
-
-
     <div class="container mb-5">
-
         <div class="row g-4 mb-5">
             <div class="col-md-6">
                 <div class="image-placeholder">
@@ -30,7 +19,6 @@
                         src="{{ url_for('static', filename='img/Waiting for Friday 💎 #moodboard #pinterest #aesthetic #silkpajamas.jpg') }}"
                         alt="">
                 </div>
-
             </div>
             <div class="col-md-6">
                 <div class="image-placeholder">
@@ -38,41 +26,35 @@
                         alt="">
                 </div>
             </div>
-
-
             <div class="row g-4">
-
                 <div class="col-lg-7">
                     <div class="content-card">
                         <h3 class="section-title">Nuestra Historia</h3>
                         <p class="text-content mb-3">
-                            EnPijamas nació en 2024 como una marca dedicada a ofrecer comodidad, estilo y bienestar a
+                            Empijamadas nació en 2024 como una marca dedicada a ofrecer comodidad, estilo y bienestar a
                             todas las personas que disfrutan de sentirse a gusto en casa. Desde sus inicios, la marca se
                             ha caracterizado por su enfoque fresco y moderno, reinventando la forma de ver la ropa para
                             dormir y marcando tendencia con diseños únicos y precios accesibles.
-                            Hoy en día, EnPijamas continúa creciendo con una comunidad cada vez más amplia y un equipo
+                            Hoy en día, Empijamadas continúa creciendo con una comunidad cada vez más amplia y un equipo
                             apasionado que trabaja para crear colecciones llenas de suavidad, calidad y personalidad,
                             pensadas para acompañarte en cada momento de descanso.
                         </p>
                         <p class="text-content">
-                            Actualmente, EnPijamas cuenta con una tienda física y una creciente presencia online,
+                            Actualmente, Empijamadas cuenta con una tienda física y una creciente presencia online,
                             apoyada por un pequeño pero apasionado equipo que trabaja cada día para ofrecer productos de
                             calidad y una experiencia cercana y personalizada a cada cliente.
                         </p>
                     </div>
-
                     <div class="stats-section">
                         <div class="stats-number">Gracias por visitarnos</div>
                     </div>
-
                     <div class="image-placeholder img-medium mb-4">
                         <img id="img-heros" src="{{ url_for('static', filename='img/download.jpg') }}" alt="">
                     </div>
-
                     <div class="content-card">
                         <h3 class="section-title">La Marca</h3>
                         <p class="text-content mb-3">
-                            EnPijamas invita a cada persona a encontrar su propio estilo de descanso y expresarlo con
+                            Empijamadas invita a cada persona a encontrar su propio estilo de descanso y expresarlo con
                             total comodidad, combinando diseños modernos con la suavidad que hace único cada momento en
                             casa.
                         </p>
@@ -82,7 +64,7 @@
                             lo que creemos y siempre buscando la autenticidad.
                         </p>
                         <p class="text-content mb-3">
-                            La creatividad de EnPijamas fluye de manera auténtica y sin límites, siempre abierta a
+                            La creatividad de Empijamadas fluye de manera auténtica y sin límites, siempre abierta a
                             explorar nuevas ideas y colaborar con propuestas frescas que aporten nuevas perspectivas.
                             Por eso, la marca busca constantemente reinterpretar el estilo de descanso con total
                             libertad, fomentando la expresión personal y la imaginación en cada diseño.
@@ -94,24 +76,21 @@
                             evolución.
                         </p>
                     </div>
-
                 </div>
-
                 <div class="col-lg-5">
                     <div class="row g-3 mb-4">
                         <div class="image-placeholder img-medium mb-4">
                             <img id="img-heros" src="{{ url_for('static', filename='img/download (1).jpg') }}" alt="">
                         </div>
                     </div>
-
                     <div class="content-card">
                         <h3 class="section-title">Concepto de Tienda</h3>
                         <p class="text-content mb-3">
-                            El concepto de tienda de EnPijamas ha evolucionado desde su creación, siempre con la
+                            El concepto de tienda de Empijamadas ha evolucionado desde su creación, siempre con la
                             intención de ofrecer un ambiente cálido y moderno para quienes buscan comodidad y estilo en
                             su descanso. Cada espacio de la marca refleja su esencia acogedora, adaptándose a su entorno
                             para brindar una experiencia cercana, relajada y totalmente alineada con la personalidad de
-                            EnPijamas.
+                            Empijamadas.
                         </p>
                         <p class="text-content">
                             El mundo es un elemento clave en bien diseñado para transmitir
@@ -120,12 +99,10 @@
                             recorrido visual por las colecciones.
                         </p>
                     </div>
-
                     <div class="image-placeholder img-medium mb-4">
                         <img id="img-heros" src="{{ url_for('static', filename='img/pexels-sullidise-5771896.jpg') }}"
                             alt="">
                     </div>
-
                     <div class="content-card">
                         <h3 class="section-title">La Comunidad</h3>
                         <p class="text-content">
@@ -137,8 +114,8 @@
                 </div>
             </div>
         </div>
-
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-
-</html>
+    </div>
+{% endblock %}
+{% block customJS %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}
