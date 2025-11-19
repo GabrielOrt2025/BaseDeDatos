@@ -1,5 +1,5 @@
 from flask import Blueprint,jsonify,render_template,request,session,flash,redirect,url_for,current_app
-from .database.sp.pa import obtenerProductos
+from .database.sp.pa import *
 import smtplib
 from email.message import EmailMessage
 
@@ -91,10 +91,20 @@ def hombre():
 def gorros():
     return render_template("tienda/gorros.html")
 
-@bp.route("/prueba")
+@bp.route("/prueba", methods=['GET', 'POST'])
 def prueba():
-    value = obtenerProductos()
+    success, value = obtenerProductos()
+    if request.method == 'POST':
+        sku = request.form.get('sku')
+        id_c = request.form.get('id_c')
+        nombre = request.form.get('nombre')
+        activo = request.form.get('activo')
+        check = crearProducto(sku=sku, categoria_id=id_c, nombre=nombre, descripcion='')
+        if check:
+            print(f"Agregado el producto {nombre}")
+    
     return render_template("prueba.html", value=value)
+
 
 @bp.route("/base")
 def base():
