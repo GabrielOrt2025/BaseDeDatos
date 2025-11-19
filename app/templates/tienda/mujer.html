@@ -1,28 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/mujer.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <title>Mujer</title>
-</head>
-<body>
-    <div class="breadcrumb">
-        <nav class="breadcrumb-nav">
-            <a href="/">Home</a>
-            <span>></span>
-            <a href="/tienda">Tienda</a>
-            <span>></span>
-            <span class="active">Mujeres</span>
-        </nav>
-    </div>
-    
-    <div class="title-section">
-        <h1>Mujeres</h1>
-    </div>
-
+{% extends "layout/base.html" %}
+{% block customCSS %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css//tienda/mujer.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" 
+    integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+{% endblock %}
+{% block title %} Mujer - Empijamadas {% endblock %}
+{% block content %}
     <div class="category-nav">
         <div class="nav-container">
             <div class="nav-tabs">
@@ -41,6 +24,23 @@
                     <div class="filter-option" data-sort="precio-asc">Precio: Menor a Mayor</div>
                     <div class="filter-option" data-sort="precio-desc">Precio: Mayor a Menor</div>
                     <div class="filter-option" data-sort="nombre">Nombre A-Z</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <section class="mujer-header">
+        <h1 class="mujer-title">MUJER</h1>
+    </section>
+    <section class="mujer-products">
+        <div class="mujer-container">
+            <!-- Producto 1 -->
+            <div class="mujer-outfit">
+                <div class="outfit-main">
+                    <img src="{{ url_for('static', filename='img/tienda1.jpeg') }}" alt="">
+                    <div class="item-info">
+                            <p class="item-name">Pijama de cuadros roja</p>
+                            <p class="item-price">16,990₡</p>
+                        </div>
                 </div>
             </div>
         </div>
@@ -152,7 +152,9 @@
             </div>
         </div>
     </section>
-
+{% block customJS %}
     <script src="{{ url_for('static', filename='js/filtro.js') }}"></script>
+{% endblock %}
 </body>
 </html>
+{% endblock %}

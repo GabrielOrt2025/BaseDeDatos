@@ -1,0 +1,95 @@
+{% extends "layout/base.html" %}
+{% block customCSS %}
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/pago/checkout.css') }}"
+    />
+{% endblock %}
+{% block content %}
+  </head>
+  <body>
+    <div class="checkout-container">
+      <h1>Checkout</h1>
+
+      <div class="checkout-content">
+        <!-- Resumen del Pedido -->
+        <div class="order-summary">
+          <h2>Resumen del Pedido</h2>
+          <div id="cart-items"></div>
+          <div class="totals">
+            <div class="total-line">
+              <span>Subtotal:</span>
+              <span id="subtotal">$0.00</span>
+            </div>
+            <div class="total-line">
+              <span>Envío:</span>
+              <span id="shipping">$0.00</span>
+            </div>
+            <div class="total-line">
+              <span>Impuestos:</span>
+              <span id="taxes">$0.00</span>
+            </div>
+            <div class="total-line grand-total">
+              <span>Total:</span>
+              <span id="total">$0.00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Formulario de Envío y Pago -->
+        <div class="checkout-form">
+          <h2>Información de Envío y Pago</h2>
+          <form id="shipping-payment-form">
+            <div class="form-group">
+              <label for="name">Nombre completo</label>
+              <input type="text" id="name" required />
+            </div>
+            <div class="form-group">
+              <label for="address">Dirección</label>
+              <input type="text" id="address" required />
+            </div>
+            <div class="form-group">
+              <label for="city">Ciudad</label>
+              <input type="text" id="city" required />
+            </div>
+            <div class="form-group">
+              <label for="zip">Código Postal</label>
+              <input type="text" id="zip" required />
+            </div>
+            <div class="form-group">
+              <label for="country">País</label>
+              <select id="country" required>
+                <option value="">Selecciona un país</option>
+                <option value="MX">México</option>
+                <option value="US">Estados Unidos</option>
+                <!-- Más opciones -->
+              </select>
+            </div>
+
+            <h3>Información de Pago</h3>
+            <div class="form-group">
+              <label for="card-number">Número de Tarjeta</label>
+              <input type="text" id="card-number" required />
+            </div>
+            <div class="form-group">
+              <label for="card-name">Nombre en la Tarjeta</label>
+              <input type="text" id="card-name" required />
+            </div>
+            <div class="form-group half">
+              <label for="expiry">Fecha de Expiración</label>
+              <input type="text" id="expiry" placeholder="MM/AA" required />
+            </div>
+            <div class="form-group half">
+              <label for="cvv">CVV</label>
+              <input type="text" id="cvv" required />
+            </div>
+
+            <button type="submit" class="submit-btn">Realizar Pedido</button>
+          </form>
+        </div>
+      </div>
+    </div>
+{% endblock %}
+{% block customJS %}
+  <script src="{{ url_for('static', filename='js/checkout.js') }}"></script>
+{% endblock %}

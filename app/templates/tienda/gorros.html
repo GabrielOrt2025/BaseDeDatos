@@ -1,0 +1,249 @@
+{% extends "layout/base.html" %}
+{% block customCSS %}
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/tienda/gorros.css') }}"
+    />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+{% endblock %}
+{% block content %}
+    <section class="hero">
+      <div class="container hero-inner">
+        <div class="hero-text">
+          <p class="hero-label">EUGENIA KIM</p>
+          <h1 class="hero-title">SUNNY WOVEN FAUX RAFFIA SUNHAT</h1>
+          <p class="hero-description">
+            Accesorios de temporada pensados para primavera. Gorros ligeros,
+            elegantes y faciles de combinar para tu dia a dia.
+          </p>
+          <button class="btn-primary">SHOP NOW</button>
+        </div>
+        <div class="hero-image">
+          <img
+            src="{{ url_for('static', filename='img/g1.jpg') }}"
+            alt="Modelo con gorra"
+          />
+        </div>
+      </div>
+    </section>
+
+    <!-- Categorias -->
+    <section class="categories">
+      <div class="container category-grid">
+        <article class="category-card">
+          <div class="category-image-wrap">
+            <img
+              src="{{ url_for('static', filename='img/g14.jpg') }}"
+              alt="Modelo con gorra"
+            />
+          </div>
+          <p class="category-name">BEANIES</p>
+        </article>
+
+        <article class="category-card">
+          <div class="category-image-wrap">
+            <img
+              src="{{ url_for('static', filename='img/g2.jpg') }}"
+              alt="Modelo con gorra"
+            />
+          </div>
+          <p class="category-name">CAPS</p>
+        </article>
+
+        <article class="category-card">
+          <div class="category-image-wrap">
+            <img
+              src="{{ url_for('static', filename='img/g3.jpg') }}"
+              alt="Modelo con gorra"
+            />
+          </div>
+          <p class="category-name">FEDORAS</p>
+        </article>
+
+        <article class="category-card">
+          <div class="category-image-wrap">
+            <img
+              src="{{ url_for('static', filename='img/g4.jpg') }}"
+              alt="Modelo con gorra"
+            />
+          </div>
+          <p class="category-name">SUNHATS</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- Productos populares fila 1 -->
+    <section class="products-section">
+      <div class="container">
+        <h2 class="section-title">POPULAR PRODUCTS</h2>
+        <div class="products-row">
+          <article class="product-card">
+            <span class="product-badge">NEW</span>
+            <div class="product-image-wrap">
+              <img
+                src="{{ url_for('static', filename='img/g5.jpg') }}"
+                alt="Modelo con gorra"
+              />
+            </div>
+            <p class="product-name">Americana Classic Knit Beanie</p>
+            <p class="product-price">$39.00</p>
+            <div class="product-actions">
+              <button class="link-btn">Agregar al carrito</button>
+            </div>
+          </article>
+
+          <article class="product-card">
+            <span class="product-badge">SALE</span>
+            <div class="product-image-wrap">
+              <img
+                src="{{ url_for('static', filename='img/g6.jpg') }}"
+                alt="Modelo con gorra"
+              />
+            </div>
+            <p class="product-name">Boston Winter Knit Beanie</p>
+            <p class="product-price">
+              <span class="price-old">$49.00</span>
+              <span class="price-new">$35.00</span>
+            </p>
+            <div class="product-actions">
+              <button class="link-btn">Elegir variante</button>
+            </div>
+          </article>
+
+          <article class="product-card">
+            <span class="product-badge">HOT</span>
+            <div class="product-image-wrap">
+              <img
+                src="{{ url_for('static', filename='img/g7.jpg') }}"
+                alt="Modelo con gorra"
+              />
+            </div>
+            <p class="product-name">Cable Knit Cuffed Beanie</p>
+            <p class="product-price">$29.00</p>
+            <div class="product-actions">
+              <button class="link-btn">Agregar al carrito</button>
+            </div>
+          </article>
+
+          <article class="product-card">
+            <div class="product-image-wrap">
+              <img
+                src="{{ url_for('static', filename='img/g8.jpg') }}"
+                alt="Modelo con gorra"
+              />
+            </div>
+            <p class="product-name">New York Fashion Cuff Knit Beanie</p>
+            <p class="product-price">$35.00</p>
+            <div class="product-actions">
+              <button class="link-btn">Agregar al carrito</button>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Banners intermedios -->
+    <section class="banners">
+      <div class="container banner-grid">
+        <article class="banner-card banner-left">
+          <div class="banner-image">
+            <img
+                src="{{ url_for('static', filename='img/g8.jpg') }}"
+                alt="Modelo con gorra"
+              />
+          </div>
+          <div class="banner-text">
+            <p class="banner-label">CAPS</p>
+            <h3 class="banner-title">BEST SELLERS</h3>
+            <p class="banner-subtitle">
+              Oferta exclusiva hasta 40 por ciento OFF
+            </p>
+            <button class="btn-primary btn-small">SHOP NOW</button>
+          </div>
+        </article>
+
+        <article class="banner-card banner-right">
+          <div class="banner-text">
+            <p class="banner-label">NEW</p>
+            <h3 class="banner-title">CLASSIC ITEMS</h3>
+            <p class="banner-subtitle">
+              Precios reducidos hasta un 30 por ciento
+            </p>
+            <button class="btn-primary btn-small">SHOP NOW</button>
+          </div>
+          <div class="banner-image">
+            <img
+              src="{{ url_for('static', filename='img/g9.jpg') }}"
+              alt="Modelo con gorra"
+            />
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Productos populares fila 2 -->
+    <section class="products-section">
+      <div class="container">
+        <h2 class="section-title">POPULAR PRODUCTS</h2>
+        <div class="products-row">
+          <article class="product-card">
+            <span class="product-badge">NEW</span>
+            <div class="product-image-wrap">
+              <img
+                src="{{ url_for('static', filename='img/g10.jpg') }}"
+                alt="Modelo con gorra"
+              />
+            </div>
+            <p class="product-name">Adjustable Leaf Shape Cap</p>
+            <p class="product-price">$32.00</p>
+            <div class="product-actions">
+              <button class="link-btn">Agregar al carrito</button>
+            </div>
+          </article>
+
+          <article class="product-card">
+            <span class="product-badge">HOT</span>
+            <div class="product-image-wrap">
+              <img
+                src="{{ url_for('static', filename='img/g11.jpg') }}"
+                alt="Modelo con gorra"
+              />
+            </div>
+            <p class="product-name">Blue Baseball Cap High Mesh</p>
+            <p class="product-price">$30.00</p>
+            <div class="product-actions">
+              <button class="link-btn">Agregar al carrito</button>
+            </div>
+          </article>
+
+          <article class="product-card">
+            <div class="product-image-wrap">
+              <img
+                src="{{ url_for('static', filename='img/g12.jpg') }}"
+                alt="Modelo con gorra"
+              />
+            </div>
+            <p class="product-name">New York Yankees Fitted</p>
+            <p class="product-price">$42.00</p>
+            <div class="product-actions">
+              <button class="link-btn">Elegir variante</button>
+            </div>
+          </article>
+
+          <article class="product-card">
+            <div class="product-image-wrap">
+              <img
+                src="{{ url_for('static', filename='img/g13.jpg') }}"
+                alt="Modelo con gorra"
+              />
+            </div>
+            <p class="product-name">Leather Pro Cap</p>
+            <p class="product-price">$53.00</p>
+            <div class="product-actions">
+              <button class="link-btn">Agregar al carrito</button>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+{% endblock %}

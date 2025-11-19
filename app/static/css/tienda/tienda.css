@@ -1,22 +1,5 @@
-:root {
-    --var-color-principal: #cb66d4;
-    --var-color-principal-hover: #b361bb;
-}
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: "Raleway", sans-serif;
-}
-
-body {
-    background-color: #fafafa;
-    color: #333;
-}
-
-/* Breadcrumb - SIN BORDE */
-.breadcrumb {
+/* Tienda Styles */
+.tienda-header {
     background-color: white;
     padding: 20px 40px;
 }
@@ -94,8 +77,7 @@ body {
     display: flex;
     gap: 30px;
 }
-
-.nav-tab {
+.nav-btn {
     background: none;
     border: none;
     font-size: 14px;
@@ -118,7 +100,19 @@ body {
     border-bottom: 2px solid var(--var-color-principal) !important; 
 }
 
-.nav-right {
+.nav-btn:hover {
+    color: #000;
+}
+
+.tienda-title {
+    font-size: 42px;
+    font-weight: 900;
+    letter-spacing: 8px;
+    text-align: center;
+    margin: 0;
+}
+
+.tienda-filters {
     display: flex;
     align-items: center;
     gap: 20px;
@@ -163,6 +157,12 @@ body {
     min-width: 200px;
     z-index: 1000;
 }
+/* Products Section */
+.tienda-products {
+    background-color: #fafafa;
+    padding: 40px 20px;
+    min-height: 100vh;
+}
 
 .filter-dropdown.show {
     display: block;
@@ -195,6 +195,9 @@ body {
 
 .product-card {
     background: white;
+}
+.tienda-product-card {
+    background-color: white;
     cursor: pointer;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     border-radius: 4px;
@@ -291,6 +294,8 @@ body {
 }
 
 .modal-cerrar:hover {
+    font-size: 15px;
+    font-weight: 600;
     color: #000;
 }
 
