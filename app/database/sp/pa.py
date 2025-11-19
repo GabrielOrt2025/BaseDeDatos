@@ -33,7 +33,7 @@ def crearProducto(sku, categoria_id, nombre, descripcion):
     try:
         connection = get_db_connection()
         cursor = connection.cursor()
-        cursor.callproc("PKG_PRODUCTO.CREAR", [sku, categoria_id, nombre, descripcion])
+        cursor.callproc("ANDREY_GABO_CHAMO_JOSE.PKG_PRODUCTO.CREAR", [sku, categoria_id, nombre, descripcion])
         connection.commit()
         cursor.close()
         connection.close()
@@ -48,7 +48,7 @@ def crearCategoria(nombre, descripcion):
     try:
         connection = get_db_connection()
         cursor = connection.cursor()
-        cursor.callproc("PKG_CATEGORIA.CREAR", [nombre, descripcion])
+        cursor.callproc("ANDREY_GABO_CHAMO_JOSE.PKG_CATEGORIA.CREAR", [nombre, descripcion])
         connection.commit()
         cursor.close()
         connection.close()
@@ -257,29 +257,51 @@ def obtenerUsuarios():
 
 
 def top5categoriaProducto(idCategoria):
+    connection = None
+    cursor = None
     try:
         connection = get_db_connection()
         cursor = connection.cursor()
+        
+        # Crear variable para el cursor de salida
         top5producto_cursor = cursor.var(oracledb.CURSOR)
-        cursor.callproc("ANDREY_GABO_CHAMO_JOSE.PKG_REPORTES_STOCK.SP_TOP_5_STOCK_POR_CATEGORIA", [idCategoria, top5producto_cursor])
+        
+        # Llamar al procedimiento con el nombre completo del esquema
+        cursor.callproc(
+            "ANDREY_GABO_CHAMO_JOSE.PKG_REPORTES_STOCK.SP_TOP_5_STOCK_POR_CATEGORIA", 
+            [idCategoria, top5producto_cursor]
+        )
+        
+        # Obtener el cursor de resultado
         resultado_cursor = top5producto_cursor.getvalue()
+        
+        # Fetch todos los resultados
         resultado = resultado_cursor.fetchall()
+        
+        # Construir la lista de productos
         productos = []
         for r in resultado:
             producto = {
-                'nombre' : r[0],
-                'precio' : r[1],
-                'descripcion' : r[2],
-                'nombre_categoria' : r[3],
-                'total_disponible' : r[4],
-                'url_img' :r[5]
+                'nombre': r[0],
+                'precio': float(r[1]) if r[1] is not None else 0.0,
+                'descripcion': r[2],
+                'nombre_categoria': r[3],
+                'total_disponible': int(r[4]) if r[4] is not None else 0,
+                'url_img': r[5]
             }
             productos.append(producto)
-        connection.close()
-        cursor.close()
+        
+        print(f"Se obtuvieron {len(productos)} productos para la categoría {idCategoria}")
+        
         return True, productos
+        
     except Exception as e:
-        cursor.close()
-        connection.close()
-        print(f"Hubo un error en el procedimiento almacenado => \n{e}")
+        print(f"Error en el procedimiento almacenado 'top5categoriaProducto' => \n{e}")
         return False, None
+        
+    finally:
+        # Cerrar cursor y conexión en el bloque finally
+        if cursor:
+            cursor.close()
+        if connection:
+            connection.close()
