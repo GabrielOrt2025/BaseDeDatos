@@ -93,86 +93,14 @@ def gorros():
 
 @bp.route("/prueba", methods=['GET', 'POST'])
 def prueba():
-    # Obtener todos los productos (tu código original)
-    success, value = top5categoriaProducto(1)
+    try:
+        top_productos = obtener_top_productos_categoria(categoria_id=1)
+        value = top_productos if top_productos else []
+    except Exception as e:
+        print(f"Error en prueba: {e}")
+        value = []
+    
     return render_template("prueba.html", value=value)
-    # # Variable para almacenar los productos top 5
-    # top5_productos = []
-    
-    # # Si es una petición POST para crear producto
-    # if request.method == 'POST':
-    #     # Verificar si se está creando un producto
-    #     if 'sku' in request.form:
-    #         sku = request.form.get('sku')
-    #         id_c = request.form.get('id_c')
-    #         nombre = request.form.get('nombre')
-    #         activo = request.form.get('activo')
-    #         check = crearProducto(sku=sku, categoria_id=id_c, nombre=nombre, descripcion='')
-    #         if check:
-    #             print(f"Agregado el producto {nombre}")
-        
-    #     # Verificar si se está consultando el top 5 por categoría
-    #     elif 'categoria_id' in request.form:
-    #         categoria_id = request.form.get('categoria_id')
-    #         try:
-    #             categoria_id = int(categoria_id)
-    #             success_top5, top5_productos = top5categoriaProducto(categoria_id)
-                
-    #             if success_top5:
-    #                 print(f"Se obtuvieron {len(top5_productos)} productos top 5")
-    #             else:
-    #                 print("Error al obtener el top 5 de productos")
-    #                 flash("Error al consultar los productos top 5", "error")
-    #         except ValueError:
-    #             print("ID de categoría inválido")
-    #             flash("ID de categoría inválido", "error")
-    
-    # return render_template("prueba.html", value=value, top5_productos=top5_productos)
-
-
-# O si prefieres una ruta separada para el top 5 (RECOMENDADO):
-@bp.route("/prueba/top5/<int:categoria_id>", methods=['GET'])
-def prueba_top5(categoria_id):
-    success, productos = top5categoriaProducto(categoria_id)
-    
-    if success:
-        return jsonify({
-            'success': True,
-            'data': productos,
-            'total': len(productos)
-        }), 200
-    else:
-        return jsonify({
-            'success': False,
-            'message': 'Error al obtener los productos top 5'
-        }), 500
-
-
-# O con parámetro de query (otra opción):
-@bp.route("/prueba/top5", methods=['GET'])
-def prueba_top5_query():
-    categoria_id = request.args.get('categoria_id', type=int)
-    
-    if not categoria_id:
-        return jsonify({
-            'success': False,
-            'message': 'Se requiere el parámetro categoria_id'
-        }), 400
-    
-    success, productos = top5categoriaProducto(categoria_id)
-    
-    if success:
-        return jsonify({
-            'success': True,
-            'data': productos,
-            'total': len(productos)
-        }), 200
-    else:
-        return jsonify({
-            'success': False,
-            'message': 'Error al obtener los productos top 5'
-        }), 500
-
 
 @bp.route("/base")
 def base():

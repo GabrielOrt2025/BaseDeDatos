@@ -63,7 +63,7 @@ def registrarIngresos(SUCURSAL_ID, DESCRIPCION, MONTO, FECHA_RECIBIDO, REGISTRAD
     try:
         connection = get_db_connection()
         cursor = connection.cursor()
-        cursor.callproc("INGRESOS_PKG.SP_REGISTRAR_INGRESO", [SUCURSAL_ID, DESCRIPCION, MONTO, FECHA_RECIBIDO, REGISTRADO_POR, TIPO])
+        cursor.callproc("ANDREY_GABO_CHAMO_JOSE.INGRESOS_PKG.SP_REGISTRAR_INGRESO", [SUCURSAL_ID, DESCRIPCION, MONTO, FECHA_RECIBIDO, REGISTRADO_POR, TIPO])
         connection.commit()
         cursor.close()
         connection.close()
@@ -81,7 +81,7 @@ def obtenerPorFecha():
         connection = get_db_connection()
         cursor = connection.cursor()
         finanzas_cursor = cursor.var(oracledb.CURSOR)
-        cursor.callproc("INGRESOS_PKG.SP_INGRESO_LEER_POR_FECHA", [finanzas_cursor])
+        cursor.callproc("ANDREY_GABO_CHAMO_JOSE.INGRESOS_PKG.SP_INGRESO_LEER_POR_FECHA", [finanzas_cursor])
         resultado = finanzas_cursor.getvalue()
         finanzaFecha = []
         for r in resultado:
@@ -105,7 +105,7 @@ def crearFactura(USUARIO_ID, ORDEN_ID, MONTO_TOTAL, DESCUENTOS, CUPON_ID, CANAL_
     try:
         connection = get_db_connection()
         cursor = connection.cursor()
-        cursor.callproc("FACTURAS_PKG.SP_FACTURA_CREAR", [USUARIO_ID, ORDEN_ID, MONTO_TOTAL, DESCUENTOS, CUPON_ID, CANAL_ID, SUCURSAL_ID, ESTADO, ID_FACTURA])
+        cursor.callproc("ANDREY_GABO_CHAMO_JOSE.FACTURAS_PKG.SP_FACTURA_CREAR", [USUARIO_ID, ORDEN_ID, MONTO_TOTAL, DESCUENTOS, CUPON_ID, CANAL_ID, SUCURSAL_ID, ESTADO, ID_FACTURA])
         connection.commit()
         cursor.close()
         connection.close()
@@ -122,7 +122,7 @@ def obtenerFechaFactura():
         connection = get_db_connection()
         cursor = connection.cursor()
         factura_cursor = cursor.var(oracledb.CURSOR)
-        cursor.callproc("FACTURAS_PKG.SP_FACTURA_LEER_POR_FECHA", [factura_cursor])
+        cursor.callproc("ANDREY_GABO_CHAMO_JOSE.FACTURAS_PKG.SP_FACTURA_LEER_POR_FECHA", [factura_cursor])
         resultado = factura_cursor.getvalue()
         facturas = []
         for r in resultado:
@@ -147,7 +147,7 @@ def actualizarEstadoFactura(FACTURA_ID, NUEVO_ESTADO):
     try:
         connection = get_db_connection()
         cursor = connection.cursor()
-        cursor.callproc("FACTURAS_PKG.SP_FACTURA_ACTUALIZAR_ESTADO", [FACTURA_ID, NUEVO_ESTADO])
+        cursor.callproc("ANDREY_GABO_CHAMO_JOSE.FACTURAS_PKG.SP_FACTURA_ACTUALIZAR_ESTADO", [FACTURA_ID, NUEVO_ESTADO])
         connection.commit()
         cursor.close()
         connection.close()
@@ -164,7 +164,7 @@ def crearUsuario(email, password_hash, nombre):
     try:
         connection = get_db_connection()
         cursor = connection.cursor()
-        cursor.callproc("PKG_GESTION_USUARIOS.SP_USUARIO_CREAR", [email, password_hash, nombre])
+        cursor.callproc("ANDREY_GABO_CHAMO_JOSE.PKG_GESTION_USUARIOS.SP_USUARIO_CREAR", [email, password_hash, nombre])
         connection.commit()
         print(f"Usuario: '{nombre}' creado exitosamente")
         cursor.close()
@@ -182,7 +182,7 @@ def obtenerContraUsuario(email):
         connection = get_db_connection()
         cursor = connection.cursor()
         password_hash = cursor.var(oracledb.STRING)
-        cursor.callproc("PKG_GESTION_USUARIOS.SP_USUARIO_OBTENER_PASS", [email, password_hash])
+        cursor.callproc("ANDREY_GABO_CHAMO_JOSE.PKG_GESTION_USUARIOS.SP_USUARIO_OBTENER_PASS", [email, password_hash])
         resultado = password_hash.getvalue()
         cursor.close()
         connection.close()
@@ -198,7 +198,7 @@ def actualizarPerfilUsuario(nombre, email, password_hash):
     try:
         connection = get_db_connection()
         cursor = connection.cursor()
-        cursor.callproc("PKG_GESTION_USUARIOS.SP_USUARIO_ACTUALIZAR_PERFIL", [nombre, email, password_hash])
+        cursor.callproc("ANDREY_GABO_CHAMO_JOSE.PKG_GESTION_USUARIOS.SP_USUARIO_ACTUALIZAR_PERFIL", [nombre, email, password_hash])
         connection.commit()
         print(f"Perfil de usuario: '{email}' actualizado exitosamente")
         cursor.close()
@@ -215,7 +215,7 @@ def cambiarActividadUsuario(usuario_id, activo):
     try:
         connection = get_db_connection()
         cursor = connection.cursor()
-        cursor.callproc("PKG_GESTION_USUARIOS.SP_ACTIVIDAD_USUARIO", [usuario_id, activo])
+        cursor.callproc("ANDREY_GABO_CHAMO_JOSE.PKG_GESTION_USUARIOS.SP_ACTIVIDAD_USUARIO", [usuario_id, activo])
         connection.commit()
         estado = "activado" if activo == 1 else "desactivado"
         print(f"Usuario Id: {usuario_id} {estado} exitosamente")
@@ -234,7 +234,7 @@ def obtenerUsuarios():
         connection = get_db_connection()
         cursor = connection.cursor()
         usuarios_cursor = cursor.var(oracledb.CURSOR)
-        cursor.callproc("PKG_GESTION_USUARIOS.SP_OBTENER_USUARIOS", [usuarios_cursor])
+        cursor.callproc("ANDREY_GABO_CHAMO_JOSE.PKG_GESTION_USUARIOS.SP_OBTENER_USUARIOS", [usuarios_cursor])
         resultado = usuarios_cursor.getvalue()
         usuarios = []
         for r in resultado:
@@ -256,52 +256,63 @@ def obtenerUsuarios():
         print(f"Error al conectar con Oracle => \n {e}")       
 
 
-def top5categoriaProducto(idCategoria):
-    connection = None
+def obtener_top_productos_categoria(categoria_id):
+
+    conn = None
     cursor = None
+    result_cursor = None
+
     try:
-        connection = get_db_connection()
-        cursor = connection.cursor()
-        
-        # Crear variable para el cursor de salida
-        top5producto_cursor = cursor.var(oracledb.CURSOR)
-        
-        # Llamar al procedimiento con el nombre completo del esquema
+        # Adquirir conexión del pool
+        conn = get_db_connection()
+
+        cursor = conn.cursor()
+
+        # Optimización de rendimiento
+        cursor.arraysize = 100
+        cursor.prefetchrows = 100
+
+        # Variable tipo cursor para recibir el SYS_REFCURSOR
+        out_cursor_var = cursor.var(oracledb.CURSOR)
+
+        # Llamar al procedimiento almacenado
         cursor.callproc(
-            "ANDREY_GABO_CHAMO_JOSE.PKG_REPORTES_STOCK.SP_TOP_5_STOCK_POR_CATEGORIA", 
-            [idCategoria, top5producto_cursor]
+            "ANDREY_GABO_CHAMO_JOSE.PKG_REPORTES_STOCK.TOP_PRODUCTOS_MAS_VENDIDOS_CAT",
+            [categoria_id, out_cursor_var]
         )
-        
-        # Obtener el cursor de resultado
-        resultado_cursor = top5producto_cursor.getvalue()
-        
-        # Fetch todos los resultados
-        resultado = resultado_cursor.fetchall()
-        
-        # Construir la lista de productos
-        productos = []
-        for r in resultado:
-            producto = {
-                'nombre': r[0],
-                'precio': float(r[1]) if r[1] is not None else 0.0,
-                'descripcion': r[2],
-                'nombre_categoria': r[3],
-                'total_disponible': int(r[4]) if r[4] is not None else 0,
-                'url_img': r[5]
-            }
-            productos.append(producto)
-        
-        print(f"Se obtuvieron {len(productos)} productos para la categoría {idCategoria}")
-        
-        return True, productos
-        
+
+        # Obtener cursor devuelto por Oracle
+        result_cursor = out_cursor_var.getvalue()
+
+        # Obtener filas
+        rows = result_cursor.fetchall()
+
+        # Convertir a lista de diccionarios
+        resultado = []
+        for row in rows:
+            resultado.append({
+                "id_producto": row[0],
+                "nombre": row[1],
+                "total_vendido": row[2]
+            })
+
+        return resultado
+
     except Exception as e:
-        print(f"Error en el procedimiento almacenado 'top5categoriaProducto' => \n{e}")
-        return False, None
-        
+        print(f"Error al obtener top productos por categoría: {e}")
+        return []
+
     finally:
-        # Cerrar cursor y conexión en el bloque finally
-        if cursor:
-            cursor.close()
-        if connection:
-            connection.close()
+        # Cerrar cursores
+        if result_cursor is not None:
+            try: result_cursor.close()
+            except: pass
+
+        if cursor is not None:
+            try: cursor.close()
+            except: pass
+
+        # Regresar la conexión al pool
+        if conn is not None:
+            try: conn.close()
+            except: pass

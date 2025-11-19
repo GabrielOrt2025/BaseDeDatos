@@ -345,57 +345,57 @@ END PKG_CATEGORIA;
 
 CREATE OR REPLACE PACKAGE PKG_REPORTES_STOCK AS
 
-    PROCEDURE SP_TOP_5_STOCK_POR_CATEGORIA(
-        P_CATEGORIA_ID IN NUMBER,
-        P_RESULTADO    OUT SYS_REFCURSOR
+    PROCEDURE TOP_PRODUCTOS_MAS_VENDIDOS_CAT (
+        p_categoria_id IN NUMBER,
+        p_resultado    OUT SYS_REFCURSOR
+    );
+
+    PROCEDURE OBTENER_IMAGENES_PRODUCTOS (
+        P_PRODUCTO_ID IN NUMBER,
+        P_RESULTADO OUT SYS_REFCURSOR
     );
 
 END PKG_REPORTES_STOCK;
 /
 
+
 CREATE OR REPLACE PACKAGE BODY PKG_REPORTES_STOCK AS
 
-    PROCEDURE SP_TOP_5_STOCK_POR_CATEGORIA(
-        P_CATEGORIA_ID IN NUMBER,
-        P_RESULTADO    OUT SYS_REFCURSOR
+    PROCEDURE OBTENER_IMAGENES_PRODUCTOS (
+        P_PRODUCTO_ID IN NUMBER,
+        P_RESULTADO OUT SYS_REFCURSOR
     ) AS
     BEGIN
-        OPEN P_RESULTADO FOR
-            SELECT 
-                P.NOMBRE AS NOMBRE_PRODUCTO,
-                P.PRECIO_BASE AS PRECIO,
-                P.DESCRIPCION,
-                C.NOMBRE AS NOMBRE_CATEGORIA,
-                SUM(PB.CANTIDAD_DISPONIBLE) AS TOTAL_DISPONIBLE,
-                -- Subconsulta para obtener solo la primera imagen (basado en ID más antiguo)
-                (SELECT URL 
-                 FROM IMAGENES_PRODUCTOS IP 
-                 WHERE IP.PRODUCTO_ID = P.ID_PRODUCTO 
-                 ORDER BY IP.IMAGEN_ID ASC 
-                 FETCH FIRST 1 ROWS ONLY) AS URL_IMAGEN
-            FROM 
-                PRODUCTOS P
-            JOIN 
-                CATEGORIA C ON P.CATEGORIA_ID = C.CATEGORIA_ID
-            JOIN 
-                PRODUCTOXBODEGA PB ON P.ID_PRODUCTO = PB.PRODUCTO_ID
-            WHERE 
-                P.CATEGORIA_ID = P_CATEGORIA_ID
-                AND P.ACTIVO = 1
-            GROUP BY 
-                P.ID_PRODUCTO, 
-                P.NOMBRE, 
-                P.PRECIO_BASE, 
-                P.DESCRIPCION, 
-                C.NOMBRE
-            ORDER BY 
-                TOTAL_DISPONIBLE DESC
-            FETCH FIRST 5 ROWS ONLY;
+        OPEN P_RESULTADO
+        FOR 
+        SELECT URL
+        FROM IMAGENES_PRODUCTOS
+        WHERE PRODUCTO_ID = P_PRODUCTO_ID;
+    END OBTENER_IMAGENES_PRODUCTOS;
 
-    EXCEPTION
-        WHEN OTHERS THEN
-            RAISE_APPLICATION_ERROR(-20302, 'Error al generar reporte de stock con imágenes: ' || SQLERRM);
-    END SP_TOP_5_STOCK_POR_CATEGORIA;
+    PROCEDURE TOP_PRODUCTOS_MAS_VENDIDOS_CAT (
+        p_categoria_id IN NUMBER,
+        p_resultado    OUT SYS_REFCURSOR
+    ) 
+    AS
+    BEGIN
+        OPEN p_resultado FOR
+            SELECT 
+                p.ID_PRODUCTO,
+                p.NOMBRE,
+                SUM(s.CANTIDAD) AS TOTAL_VENDIDO
+            FROM SALIDAS s
+            INNER JOIN PRODUCTOS p
+                ON p.ID_PRODUCTO = s.PRODUCTO_ID
+            WHERE p.CATEGORIA_ID = p_categoria_id
+            GROUP BY p.ID_PRODUCTO, p.NOMBRE
+            ORDER BY TOTAL_VENDIDO DESC
+            FETCH FIRST 5 ROWS ONLY;
+    END TOP_PRODUCTOS_MAS_VENDIDOS_CAT;
 
 END PKG_REPORTES_STOCK;
 /
+
+SELECT owner, table_name
+FROM all_tables
+WHERE table_name IN ('PRODUCTOS', 'SALIDAS');
