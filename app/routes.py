@@ -7,7 +7,12 @@ bp = Blueprint("main", __name__)
 
 @bp.route("/")  
 def home():
-    return render_template("home/home.html")
+    try:
+        return render_template("home/home.html")
+    except Exception as e:
+        print(f"Error al obtner los productos: {e}") 
+        return render_template("home/home.html", hombres=[], mujeres=[])
+        
 
 @bp.route("/contacto", methods=["GET", "POST"])
 def contacto():
@@ -77,7 +82,8 @@ def cuenta():
 
 @bp.route("/tienda")
 def tienda():
-    return render_template("tienda/tienda.html")
+    productos = obtenerDetallesProducto()
+    return render_template("tienda/tienda.html", productos=productos)
 
 @bp.route("/tienda/mujer")
 def mujer():
@@ -91,17 +97,43 @@ def hombre():
 def gorros():
     return render_template("tienda/gorros.html")
 
-@bp.route("/prueba", methods=['GET', 'POST'])
+@bp.route("/prueba", methods=['GET'])
 def prueba():
     try:
-        top_productos = obtener_top_productos_categoria(categoria_id=1)
-        value = top_productos if top_productos else []
+        # obtenerDetallesProducto devuelve (True/False, data)
+        value = obtenerDetallesProducto()
+
+        # obtenerTopProductosCateogria también devuelve (True/False, data)
+        # success2, hombre = obtenerTopProductosCateogria(2)
+        print(value)
     except Exception as e:
         print(f"Error en prueba: {e}")
-        value = []
-    
-    return render_template("prueba.html", value=value)
+        import traceback
+        traceback.print_exc()
+        # value = []
+        hombre = []
 
-@bp.route("/base")
-def base():
-    return render_template("layout/base.html")
+    return render_template("prueba.html", hombre=value)
+
+@bp.route("/top5/<int:categoria_id>")
+def top5(categoria_id):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        ref_cursor = cursor.var(oracledb.CURSOR)
+        cursor.callproc("ANDREY_GABO_CHAMO_JOSE.PKG_REPORTES_STOCK.SP_TOP5_PRODUCTOS_MAS_VENDIDOS",
+                        [categoria_id, ref_cursor])
+        rows = ref_cursor.getvalue()
+        result = []
+        for r in rows:
+            result.append({
+                "id_producto": r[0],
+                "nombre": r[1],
+                "precio_promedio": r[2],
+                "url_imagen": r[3],
+                "total_vendido": r[4]
+            })
+        return jsonify(result)
+    finally:
+        cursor.close()
+        conn.close()

@@ -167,14 +167,14 @@ CREATE OR REPLACE PACKAGE PKG_STOCK AS
     
     PROCEDURE ACTUALIZAR_CANT (
         P_BODEGA_ID IN NUMBER,
-        P_PRODUCTO_ID IN NUMBER,
+        P_id_producto IN NUMBER,
         P_CANTIDAD_DISPONIBLE IN NUMBER,
         P_CANTIDAD_RESERVADA IN NUMBER
     );
 
     PROCEDURE ACTUALIZAR_ALERTA (
         P_BODEGA_ID IN NUMBER,
-        P_PRODUCTO_ID IN NUMBER,
+        P_id_producto IN NUMBER,
         P_CANTIDAD_ALERTA IN NUMBER
     );
 
@@ -194,7 +194,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_STOCK AS
                    PB.CANTIDAD_RESERVADA,
                    PB.CANTIDAD_ALERTA
             FROM PRODUCTOXBODEGA PB
-            JOIN PRODUCTOS P ON PB.PRODUCTO_ID = P.ID_PRODUCTO
+            JOIN PRODUCTOS P ON PB.id_producto = P.ID_PRODUCTO
             WHERE PB.BODEGA_ID = P_BODEGA_ID
             ORDER BY P.NOMBRE;
 
@@ -206,7 +206,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_STOCK AS
 
     PROCEDURE ACTUALIZAR_CANT (
         P_BODEGA_ID IN NUMBER,
-        P_PRODUCTO_ID IN NUMBER,
+        P_id_producto IN NUMBER,
         P_CANTIDAD_DISPONIBLE IN NUMBER,
         P_CANTIDAD_RESERVADA IN NUMBER
     ) AS
@@ -215,10 +215,10 @@ CREATE OR REPLACE PACKAGE BODY PKG_STOCK AS
         SET CANTIDAD_DISPONIBLE = P_CANTIDAD_DISPONIBLE,
             CANTIDAD_RESERVADA = P_CANTIDAD_RESERVADA
         WHERE BODEGA_ID = P_BODEGA_ID 
-          AND PRODUCTO_ID = P_PRODUCTO_ID;
+          AND id_producto = P_id_producto;
 
         IF SQL%ROWCOUNT = 0 THEN
-            RAISE_APPLICATION_ERROR(-20121, 'No se encontró el registro de stock para actualizar (P_BODEGA_ID: ' || P_BODEGA_ID || ', P_PRODUCTO_ID: ' || P_PRODUCTO_ID || ').');
+            RAISE_APPLICATION_ERROR(-20121, 'No se encontró el registro de stock para actualizar (P_BODEGA_ID: ' || P_BODEGA_ID || ', P_id_producto: ' || P_id_producto || ').');
         END IF;
 
     EXCEPTION
@@ -229,14 +229,14 @@ CREATE OR REPLACE PACKAGE BODY PKG_STOCK AS
     
     PROCEDURE ACTUALIZAR_ALERTA (
         P_BODEGA_ID IN NUMBER,
-        P_PRODUCTO_ID IN NUMBER,
+        P_id_producto IN NUMBER,
         P_CANTIDAD_ALERTA IN NUMBER
     ) AS
     BEGIN
         UPDATE PRODUCTOXBODEGA
         SET CANTIDAD_ALERTA = P_CANTIDAD_ALERTA
         WHERE BODEGA_ID = P_BODEGA_ID 
-          AND PRODUCTO_ID = P_PRODUCTO_ID;
+          AND id_producto = P_id_producto;
         
         IF SQL%ROWCOUNT = 0 THEN
             RAISE_APPLICATION_ERROR(-20123, 'No se encontró el registro de stock para actualizar la alerta.');
@@ -345,57 +345,85 @@ END PKG_CATEGORIA;
 
 CREATE OR REPLACE PACKAGE PKG_REPORTES_STOCK AS
 
-    PROCEDURE TOP_PRODUCTOS_MAS_VENDIDOS_CAT (
-        p_categoria_id IN NUMBER,
-        p_resultado    OUT SYS_REFCURSOR
+    PROCEDURE SP_OBTENER_PRODUCTOS_DETALLE (
+        p_cursor OUT SYS_REFCURSOR
     );
 
-    PROCEDURE OBTENER_IMAGENES_PRODUCTOS (
-        P_PRODUCTO_ID IN NUMBER,
-        P_RESULTADO OUT SYS_REFCURSOR
+    PROCEDURE SP_TOP5_PRODUCTOS_MAS_VENDIDOS(
+        p_categoria_id IN NUMBER,
+        p_cursor OUT SYS_REFCURSOR
     );
 
 END PKG_REPORTES_STOCK;
 /
-
 
 CREATE OR REPLACE PACKAGE BODY PKG_REPORTES_STOCK AS
 
-    PROCEDURE OBTENER_IMAGENES_PRODUCTOS (
-        P_PRODUCTO_ID IN NUMBER,
-        P_RESULTADO OUT SYS_REFCURSOR
+    PROCEDURE SP_TOP5_PRODUCTOS_MAS_VENDIDOS(
+        p_categoria_id IN NUMBER,
+        p_cursor OUT SYS_REFCURSOR
     ) AS
     BEGIN
-        OPEN P_RESULTADO
-        FOR 
-        SELECT URL
-        FROM IMAGENES_PRODUCTOS
-        WHERE PRODUCTO_ID = P_PRODUCTO_ID;
-    END OBTENER_IMAGENES_PRODUCTOS;
+        OPEN p_cursor FOR
+            SELECT *
+            FROM (
+                SELECT
+                    p.ID_PRODUCTO,
+                    p.NOMBRE,
 
-    PROCEDURE TOP_PRODUCTOS_MAS_VENDIDOS_CAT (
-        p_categoria_id IN NUMBER,
-        p_resultado    OUT SYS_REFCURSOR
-    ) 
+                    -- Precio promedio
+                    (SELECT AVG(e.PRECIO_UNITARIO)
+                    FROM ENTRADAS e
+                    WHERE e.PRODUCTO_ID = p.ID_PRODUCTO) AS PRECIO,
+
+                    -- Primera imagen correcta
+                    (SELECT img.URL
+                    FROM IMAGENES_PRODUCTOS img
+                    WHERE img.PRODUCTO_ID = p.ID_PRODUCTO
+                    ORDER BY img.CREADO_EN
+                    FETCH FIRST 1 ROWS ONLY) AS URL_IMAGEN,
+
+                    -- Si no hay ventas → 0
+                    NVL(SUM(s.CANTIDAD), 0) AS TOTAL_VENDIDO
+
+                FROM PRODUCTOS p
+
+                -- LEFT JOIN para incluir productos sin ventas
+                LEFT JOIN SALIDAS s 
+                    ON s.PRODUCTO_ID = p.ID_PRODUCTO
+
+                WHERE p.ACTIVO = 1
+                AND p.CATEGORIA_ID = p_categoria_id
+
+                GROUP BY p.ID_PRODUCTO, p.NOMBRE
+                ORDER BY TOTAL_VENDIDO DESC
+            )
+            WHERE ROWNUM <= 5;
+    END SP_TOP5_PRODUCTOS_MAS_VENDIDOS;
+
+
+    PROCEDURE SP_OBTENER_PRODUCTOS_DETALLE (
+        p_cursor OUT SYS_REFCURSOR
+    )
     AS
     BEGIN
-        OPEN p_resultado FOR
-            SELECT 
-                p.ID_PRODUCTO,
-                p.NOMBRE,
-                SUM(s.CANTIDAD) AS TOTAL_VENDIDO
-            FROM SALIDAS s
-            INNER JOIN PRODUCTOS p
-                ON p.ID_PRODUCTO = s.PRODUCTO_ID
-            WHERE p.CATEGORIA_ID = p_categoria_id
-            GROUP BY p.ID_PRODUCTO, p.NOMBRE
-            ORDER BY TOTAL_VENDIDO DESC
-            FETCH FIRST 5 ROWS ONLY;
-    END TOP_PRODUCTOS_MAS_VENDIDOS_CAT;
+        OPEN p_cursor FOR
+        SELECT
+            p.ID_PRODUCTO,
+            p.NOMBRE AS NOMBRE_PRODUCTO,
+            c.NOMBRE AS NOMBRE_CATEGORIA,
+            LISTAGG(ip.URL, '; ') WITHIN GROUP (ORDER BY ip.URL) AS URLS_IMAGENES,
+            p.PRECIO_BASE AS PRECIO_BASE
+        FROM PRODUCTOS p
+        JOIN CATEGORIA c ON p.CATEGORIA_ID = c.CATEGORIA_ID
+        LEFT JOIN IMAGENES_PRODUCTOS ip ON p.ID_PRODUCTO = ip.PRODUCTO_ID 
+        WHERE p.ACTIVO = 1 
+        GROUP BY
+            p.ID_PRODUCTO,
+            p.NOMBRE,
+            c.NOMBRE,
+            p.PRECIO_BASE;
+            END SP_OBTENER_PRODUCTOS_DETALLE;
 
 END PKG_REPORTES_STOCK;
 /
-
-SELECT owner, table_name
-FROM all_tables
-WHERE table_name IN ('PRODUCTOS', 'SALIDAS');
