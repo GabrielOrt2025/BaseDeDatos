@@ -144,7 +144,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         
                         <div class="modal-derecha">
                             <h2 class="modal-nombre"></h2>
-                            <p class="modal-precio"></p>
+                            <p class="modal-precio">{{ pijamas.precio_base }}</p>
                             
                             <div class="selector-color">
                                 <p>Color:</p>
