@@ -68,11 +68,9 @@
                         Esenciales para la mujer moderna. Máxima calidad, suavidad y versatilidad. Encuentra tu comodidad ideal.
                     </p>
                     <ul id="women-list">
-                        <li data-image="top-1-M">Top 1</li>
-                        <li data-image="top-2-M">Top 2</li>
-                        <li data-image="top-3-M">Top 3</li>
-                        <li data-image="top-4-M">Top 4</li>
-                        <li data-image="bottom-M">Bottom</li>
+                      {% for mujer in mujeres %}
+                        <li data-image="top-1-M">{{ mujer.nombre }}</li>
+                      {% endfor %}
                     </ul>
                 </div>
                 <div class="category-image">

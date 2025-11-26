@@ -58,7 +58,7 @@
             {% for pijamas in productos %}
                 <div class="product-card" data-category="{{ pijamas.nombre_categoria }}" data-price="{{ pijamas.precio_base }}" data-name="{{ pijamas.nombre_producto }}">
                     <div class="product-img">
-                        <img src="{{ url_for('static', filename='pijamas.urls_imagenes') }}" 
+                        <img src="{{ pijamas.urls_imagenes }}" 
                             alt="{{ pijamas.nombre_producto }}">
                     </div>
                     <div class="product-details">

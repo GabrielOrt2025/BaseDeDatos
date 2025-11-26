@@ -303,121 +303,34 @@ def obtenerDetallesProducto():
             pass
         
         try:
-            connection.close()   # 🔥 MUY IMPORTANTE con pools
+            connection.close()
         except:
             pass
 
 
-
-# def obtenerTopProductosCategoria(idCategoria):
-#     try:
-#         connection = get_db_connection()
-#         cursor = connection.cursor()
-#         cursor_var = cursor.var(oracledb.CURSOR)
-
-#         cursor.callproc(
-#             "ANDREY_GABO_CHAMO_JOSE.PKG_REPORTES_STOCK.SP_TOP5_PRODUCTOS_MAS_VENDIDOS",
-#             [idCategoria, cursor_var]
-#         )
-
-#         rows = cursor_var.getvalue()
-#         topProductos = []
-
-#         for r in rows:
-#             producto = {
-#                 'id': r[0],        # ID_PRODUCTO
-#                 'nombre': r[1],    # NOMBRE
-#                 'precio': r[2],    # PRECIO
-#                 'url': r[3],       # URL_IMAGEN
-#                 'total': r[4]      # TOTAL_VENDIDO
-#             }
-#             topProductos.append(producto)
-
-#         print(f"Se obtuvieron productos de la categoria: {idCategoria}")
-#         return True, topProductos
-#     except Exception as e:
-#         print("ERROR COMPLETO:", str(e))
-#         import traceback
-#         traceback.print_exc()
-#         return False, []
-#     finally:
-#         if cursor is not None:
-#             try: cursor.close()
-#             except: pass
-
-#         if connection is not None:
-#             try: connection.close()
-#             except: pass
-
-
-# def obtenerTopProductosCateogria(idCategoria):
-#     try:
-#         connection = get_db_connection()
-#         cursor = connection.cursor()
-#         cursor_var = cursor.var(oracledb.CURSOR)
-
-#         print(">>> ANTES DEL CALLPROC")
-
-#         cursor.callproc(
-#             "ANDREY_GABO_CHAMO_JOSE.PKG_REPORTES_STOCK.SP_TOP5_PRODUCTOS_MAS_VENDIDOS",
-#             [idCategoria, cursor_var]
-#         )
-
-#         print(">>> DESPUÉS DEL CALLPROC")
-
-#         rows = cursor_var.getvalue()
-#         topProductos = []
-
-#         for r in rows:
-#             producto = {
-#                 'id': r[0],
-#                 'nombre': r[1],
-#                 'precio': r[2],
-#                 'url': r[3],
-#                 'total_vendido': r[4]
-#             }
-#             topProductos.append(producto)
-
-#         return True, topProductos
-
-#     except Exception as e:
-#         print(f"Error al ejecutar 'obtenerTopProductosCateogria' => {e}")
-#         return False, []
-#     finally:
-#         if cursor is not None:
-#             try: cursor.close()
-#             except: pass
-
-#         if connection is not None:
-#             try: connection.close()
-#             except: pass
-
 def obtenerTopProductosCateogria(idCategoria):
+    connection = None
+    cursor = None
+    ref_cursor = None
+    
     try:
-        print(">>> creando conexion")
+        print(f">>> Obteniendo top productos de categoría: {idCategoria}")
         connection = get_db_connection()
-
-        print(">>> creando cursor")
         cursor = connection.cursor()
-
-        print(">>> creando cursor_var")
-        cursor_var = cursor.var(oracledb.CURSOR)
-
-        print(">>> antes del callproc")
+        
+        # ✅ CAMBIO CRÍTICO: Cursor directo en lugar de var(oracledb.CURSOR)
+        ref_cursor = connection.cursor()
+        
+        print(">>> Llamando al procedimiento almacenado...")
         cursor.callproc(
             "ANDREY_GABO_CHAMO_JOSE.PKG_REPORTES_STOCK.SP_TOP5_PRODUCTOS_MAS_VENDIDOS",
-            [idCategoria, cursor_var]
+            [idCategoria, ref_cursor]
         )
-
-        print(">>> despues del callproc, obteniendo filas")
-        rows = cursor_var.getvalue()
-
-        print(">>> filas obtenidas:", rows)
-
+        
+        print(">>> Procesando resultados...")
         topProductos = []
-
-        for r in rows:
-            print(">>> fila:", r)
+        
+        for r in ref_cursor:
             producto = {
                 'id': r[0],        # ID_PRODUCTO
                 'nombre': r[1],    # NOMBRE
@@ -426,25 +339,29 @@ def obtenerTopProductosCateogria(idCategoria):
                 'total': r[4]      # TOTAL_VENDIDO
             }
             topProductos.append(producto)
-
-        print(">>> FIN normal, productos:", topProductos)
+        
+        print(f"✅ Se obtuvieron {len(topProductos)} productos")
         return True, topProductos
-
+        
     except Exception as e:
-        print(f"Error en obtenerTopProductosCateogria: {e}")
+        print(f"❌ Error en obtenerTopProductosCateogria: {e}")
         import traceback
         traceback.print_exc()
         return False, []
-
+        
     finally:
-        try:
-            if cursor is not None:
+        if ref_cursor:
+            try:
+                ref_cursor.close()
+            except:
+                pass
+        if cursor:
+            try:
                 cursor.close()
-        except:
-            pass
-
-        try:
-            if connection is not None:
+            except:
+                pass
+        if connection:
+            try:
                 connection.close()
-        except:
-            pass
+            except:
+                pass

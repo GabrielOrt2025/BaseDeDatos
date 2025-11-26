@@ -8,10 +8,20 @@ bp = Blueprint("main", __name__)
 @bp.route("/")  
 def home():
     try:
-        return render_template("home/home.html")
+        success_h, hombre = obtenerTopProductosCateogria(idCategoria=2)
+        success_m, mujer = obtenerTopProductosCateogria(idCategoria=1)
+        success_g, gorros = obtenerTopProductosCateogria(idCategoria=3)
+        
+        hombre = hombre if success_h else []
+        mujer = mujer if success_m else []
+        gorros = gorros if success_g else []
+        
+        return render_template("home/home.html", hombres=hombre, mujeres=mujer, gorros=gorros)
     except Exception as e:
         print(f"Error al obtner los productos: {e}") 
-        return render_template("home/home.html", hombres=[], mujeres=[])
+        import traceback
+        traceback.print_exc()
+        return render_template("home/home.html", hombres=[], mujeres=[], gorros=[])
         
 
 @bp.route("/contacto", methods=["GET", "POST"])
@@ -97,23 +107,18 @@ def hombre():
 def gorros():
     return render_template("tienda/gorros.html")
 
-@bp.route("/prueba", methods=['GET'])
+@bp.route("/prueba", methods=['GET', 'POST'])
 def prueba():
     try:
-        # obtenerDetallesProducto devuelve (True/False, data)
-        value = obtenerDetallesProducto()
-
-        # obtenerTopProductosCateogria también devuelve (True/False, data)
-        # success2, hombre = obtenerTopProductosCateogria(2)
-        print(value)
+        success, value = obtenerTopProductosCateogria(idCategoria=1)
+        productos = value if success else []
     except Exception as e:
         print(f"Error en prueba: {e}")
         import traceback
         traceback.print_exc()
-        # value = []
-        hombre = []
-
-    return render_template("prueba.html", hombre=value)
+        productos = []
+    
+    return render_template("prueba.html", value=productos)
 
 @bp.route("/top5/<int:categoria_id>")
 def top5(categoria_id):
