@@ -1,5 +1,7 @@
 from ..conexionDB import get_db_connection
 import oracledb
+import traceback
+
 
 def obtenerProductos():
     try:
@@ -258,22 +260,16 @@ def obtenerUsuarios():
 
 def obtenerDetallesProducto():
     try:
-        print(">>> creando conexion")
         connection = get_db_connection()
 
-        print(">>> creando cursor")
         cursor = connection.cursor()
 
-        print(">>> creando cursor_var")
         cursor_var = connection.cursor().var(oracledb.CURSOR)
 
-        print(">>> antes del callproc")
         cursor.callproc(
             "ANDREY_GABO_CHAMO_JOSE.PKG_REPORTES_STOCK.SP_OBTENER_PRODUCTOS_DETALLE",
             [cursor_var]
         )
-
-        print(">>> despues del callproc")
 
         result_cursor = cursor_var.getvalue()
         rows = result_cursor.fetchall()
@@ -287,7 +283,6 @@ def obtenerDetallesProducto():
                 'urls_imagenes': r[3],
                 'precio_base': r[4]
             })
-
         return productos
 
     except Exception as e:
@@ -303,65 +298,173 @@ def obtenerDetallesProducto():
             pass
         
         try:
-            connection.close()
+            connection.close()   # 🔥 MUY IMPORTANTE con pools
         except:
             pass
 
+
+
+# def obteneection()
+#         cursor = connection.cursor()
+#         cursor_var = cursor.var(oracledb.CURSOR)
+
+#         cursor.callproc(
+#             "ANDREY_GABO_CHAMO_JOSE.PKG_REPORTES_STOCK.SP_TOP5_PRODUCTOS_MAS_VENDIDOS",
+#             [idCategoria, cursor_var]
+#         )
+
+#         rows = cursor_var.getvalue()
+#         topProductos = []
+
+#         for r in rows:
+#             producto = {
+#                 'id': r[0],        # ID_PRODUCTO
+#                 'nombre': r[1],    # NOMBRE
+#                 'precio': r[2],    # PRECIO
+#                 'url': r[3],       # URL_IMAGEN
+#                 'total': r[4]      # TOTAL_VENDIDO
+#             }
+#             topProductos.append(producto)
+
+#         print(f"Se obtuvieron productos de la categoria: {idCategoria}")
+#         return True, topProductos
+#     except Exception as e:
+#         print("ERROR COMPLETO:", str(e))
+#         import traceback
+#         traceback.print_exc()
+#         return False, []
+#     finally:
+#         if cursor is not None:
+#             try: cursor.close()
+#             except: pass
+
+#         if connection is not None:
+#             try: connection.close()
+#             except: pass
+
+
+# def obtenerTopProductosCateogria(idCategoria):
+#     try:
+#         connection = get_db_connection()
+#         cursor = connection.cursor()
+#         cursor_var = cursor.var(oracledb.CURSOR)
+
+#         print(">>> ANTES DEL CALLPROC")
+
+#         cursor.callproc(
+#             "ANDREY_GABO_CHAMO_JOSE.PKG_REPORTES_STOCK.SP_TOP5_PRODUCTOS_MAS_VENDIDOS",
+#             [idCategoria, cursor_var]
+#         )
+
+#         print(">>> DESPUÉS DEL CALLPROC")
+
+#         rows = cursor_var.getvalue()
+#         topProductos = []
+
+#         for r in rows:
+#             producto = {
+#                 'id': r[0],
+#                 'nombre': r[1],
+#                 'precio': r[2],
+#                 'url': r[3],
+#                 'total_vendido': r[4]
+#             }
+#             topProductos.append(producto)
+
+#         return True, topProductos
+
+#     except Exception as e:
+#         print(f"Error al ejecutar 'obtenerTopProductosCateogria' => {e}")
+#         return False, []
+#     finally:
+#         if cursor is not None:
+#             try: cursor.close()
+#             except: pass
+
+#         if connection is not None:
+#             try: connection.close()
+#             except: pass
 
 def obtenerTopProductosCateogria(idCategoria):
     connection = None
     cursor = None
     ref_cursor = None
-    
     try:
-        print(f">>> Obteniendo top productos de categoría: {idCategoria}")
         connection = get_db_connection()
         cursor = connection.cursor()
-        
-        # ✅ CAMBIO CRÍTICO: Cursor directo en lugar de var(oracledb.CURSOR)
         ref_cursor = connection.cursor()
-        
-        print(">>> Llamando al procedimiento almacenado...")
+
         cursor.callproc(
             "ANDREY_GABO_CHAMO_JOSE.PKG_REPORTES_STOCK.SP_TOP5_PRODUCTOS_MAS_VENDIDOS",
             [idCategoria, ref_cursor]
         )
-        
-        print(">>> Procesando resultados...")
         topProductos = []
-        
+
         for r in ref_cursor:
             producto = {
                 'id': r[0],        # ID_PRODUCTO
                 'nombre': r[1],    # NOMBRE
-                'precio': r[2],    # PRECIO
+                'precio': float(r[2]) if r[2] is not None else 0.0,    # PRECIO
                 'url': r[3],       # URL_IMAGEN
-                'total': r[4]      # TOTAL_VENDIDO
+                'total': int(r[4]) if r[4] is not None else 0     # TOTAL_VENDIDO
             }
             topProductos.append(producto)
-        
-        print(f"✅ Se obtuvieron {len(topProductos)} productos")
+
+        print(">>> FIN normal, productos:", topProductos)
         return True, topProductos
-        
+
     except Exception as e:
-        print(f"❌ Error en obtenerTopProductosCateogria: {e}")
-        import traceback
+        print(f"Error en obtenerTopProductosCateogria: {e}")
         traceback.print_exc()
         return False, []
-        
+
     finally:
-        if ref_cursor:
-            try:
-                ref_cursor.close()
-            except:
-                pass
-        if cursor:
-            try:
+        try:
+            if cursor is not None:
                 cursor.close()
-            except:
-                pass
-        if connection:
-            try:
+        except:
+            pass
+
+        try:
+            if connection is not None:
                 connection.close()
-            except:
-                pass
+        except:
+            pass
+
+
+def obtenerProductoCategoria(idCategoria):
+    connection = None
+    cursor = None
+    ref_cursor = None
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        ref_cursor = connection.cursor()
+
+        cursor.callproc(
+            "ANDREY_GABO_CHAMO_JOSE.PKG_REPORTES_STOCK.SP_OBTENER_PRODUCTO_CATEGORIA", 
+            [idCategoria, ref_cursor]
+        )
+        
+        productos = []
+
+        for r in ref_cursor:
+            producto = {
+                'id': r[0],
+                'nombre': r[1],       
+                'precio': float(r[2]) if r[2] is not None else 0.0,
+                'url': r[3],
+                'total_vendido': int(r[4]) if r[4] is not None else 0  
+            }
+            productos.append(producto)
+        print("Productos: ", productos)
+        return productos
+    except Exception as e:
+        print(f"Error en obtenerProductosCategoria: {e}")
+        traceback.print_exc()
+        return None
+    finally:
+        if cursor is not None:
+            cursor.close()
+        if connection is not None:
+            connection.close()

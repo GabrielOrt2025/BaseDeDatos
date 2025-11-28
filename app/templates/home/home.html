@@ -69,13 +69,13 @@
                     </p>
                     <ul id="women-list">
                       {% for mujer in mujeres %}
-                        <li data-image="top-1-M">{{ mujer.nombre }}</li>
+                        <li data-image="mujer-{{ loop.index }}">{{ mujer.nombre }}</li>
                       {% endfor %}
                     </ul>
                 </div>
                 <div class="category-image">
                     <div class="image-placeholder" id="women-image">
-                        <img src="{{ url_for('static', filename='img/top-1.jpeg') }}" alt="Top 1" style="width: 100%; height: 100%; object-fit: cover;">
+                        <img src="{% if mujeres %}{{ url_for('static', filename=mujeres[0].url) }}{% else %}{{ url_for('static', filename='img/placeholder.png') }}{% endif %}" alt="Mujer" style="width: 100%; height: 100%; object-fit: cover;">
                     </div>
                 </div>
             </div>
@@ -92,17 +92,14 @@
                         Esenciales para el hombre moderno. Máxima calidad, suavidad y versatilidad. Encuentra tu comodidad ideal.
                     </p>
                     <ul id="mens-list">
-                        <li data-image="top-1-H">Top-1</li>
-                        <li data-image="top-2-H">Top-2</li>
-                        <li data-image="top-3-H">Top-3</li>
-                        <li data-image="top-4-H">Top-4</li>
-                        <li data-image="bottom-H">Bottom</li>
-
+                        {% for hombre in hombres %}
+                        <li data-image="hombre-{{ loop.index }}">{{ hombre.nombre }}</li>
+                        {% endfor %}
                     </ul>
                 </div>
                 <div class="category-image">
                     <div class="image-placeholder" id="mens-image">
-                        <img src="{{ url_for('static', filename='img/blazers.jpg') }}" alt="Blazers" style="width: 100%; height: 100%; object-fit: cover;">
+                        <img src="{% if hombres %}{{ url_for('static', filename=hombres[0].url) }}{% else %}{{ url_for('static', filename='img/placeholder.png') }}{% endif %}" alt="Hombre" style="width: 100%; height: 100%; object-fit: cover;">
                     </div>
                 </div>
             </div>
@@ -119,16 +116,14 @@
                         Gorro de satén de lujo. Cero frizz y máxima protección contra la rotura. Mantén tu cabello suave, hidratado y listo al despertar
                     </p>
                     <ul id="accessories-list">
-                        <li data-image="top-1-G">Top-1</li>
-                        <li data-image="top-2-G">Top-2</li>
-                        <li data-image="top-3-G">Top-3</li>
-                        <li data-image="top-4-G">Top-4</li>
-                        <li data-image="bottom-G">bottom</li>
+                      {% for gorro in gorros %}
+                        <li data-image="gorro-{{ loop.index }}">{{ gorro.nombre }}</li>
+                      {% endfor %}
                     </ul>
                 </div>
                 <div class="category-image">
                     <div class="image-placeholder" id="accessories-image">
-                        <img src="{{ url_for('static', filename='img/handbags.jpg') }}" alt="Handbags" style="width: 100%; height: 100%; object-fit: cover;">
+                        <img class="gorros-img" src="{% if gorros %}{{ url_for('static', filename=gorros[0].url) }}{% else %}{{ url_for('static', filename='img/placeholder.png') }}{% endif %}" alt="Gorros" style="width: 100%; height: 100%; object-fit: cover;">
                     </div>
                 </div>
             </div>
@@ -293,62 +288,5 @@
     </section>
   {% endblock %}
 {% block customJS %}
-  <script>
-      const imageMap = {
-          // Women's images
-          "top-1-M": "{{ url_for('static', filename='img/top-1.jpg') }}",
-          "top-2-M": "{{ url_for('static', filename='img/top-2.jpg') }}",
-          "top-3-M": "{{ url_for('static', filename='img/top-3.jpeg') }}",
-          "top-4-M": "{{ url_for('static', filename='img/top-4.jpeg') }}",
-          "bottom-M": "{{ url_for('static', filename='img/bottom.jpeg') }}",
-          
-          // Men's images
-          "top-1-H": "{{ url_for('static', filename='img/top-1-H.jpg') }}",
-          "top-2-H": "{{ url_for('static', filename='img/top-2-H.jpg') }}",
-          "top-3-H": "{{ url_for('static', filename='img/top-3-H.jpg') }}",
-          "top-4-H": "{{ url_for('static', filename='img/top-4-H.jpg') }}",
-          "bottom-H": "{{ url_for('static', filename='img/botttom-H.jpg') }}",
-          
-          // Accessories images
-          "top-1-G": "{{ url_for('static', filename='img/top-1-G.jpg') }}",
-          "top-2-G": "{{ url_for('static', filename='img/top-2-G.jpg') }}",
-          "top-3-G": "{{ url_for('static', filename='img/top-3-G.jpg') }}",
-          "top-4-G": "{{ url_for('static', filename='img/top-4-G.jpg') }}",
-          "bottom-G": "{{ url_for('static', filename='img/bottom-G.jpg') }}"
-      };
-
-      function changeImage(listId, imageId) {
-          const list = document.getElementById(listId);
-          const imageContainer = document.getElementById(imageId);
-
-          if (!list || !imageContainer) return;
-
-          const items = list.querySelectorAll('li');
-          items.forEach(item => {
-              item.addEventListener('mouseenter', function() {
-                  const imageName = this.getAttribute('data-image');
-                  const imageSrc = imageMap[imageName];
-                  
-                  if (imageSrc) {
-                      const img = imageContainer.querySelector('img');
-                      if (img) {
-                          img.style.opacity = '0';
-                          setTimeout(() => {
-                              img.src = imageSrc;
-                              img.alt = this.textContent;
-                              img.style.opacity = '1';
-                          }, 250);
-                      }
-                  }
-              });
-          });
-      }
-
-      // Inicializar cuando el DOM esté listo
-      document.addEventListener('DOMContentLoaded', function() {
-          changeImage('women-list', 'women-image');
-          changeImage('mens-list', 'mens-image');
-          changeImage('accessories-list', 'accessories-image');
-      });
-  </script>
+  <script src="{{ url_for('static', filename='js/apiGetHome.js') }}"></script>
 {% endblock %}

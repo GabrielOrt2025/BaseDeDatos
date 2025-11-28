@@ -101,44 +101,46 @@ def mujer():
 
 @bp.route("/tienda/hombres")
 def hombre():
+    hombres = []
     return render_template("tienda/hombres.html")
 
 @bp.route("/tienda/gorros")
 def gorros():
-    return render_template("tienda/gorros.html")
+    return render_template("tienda/gorro.html")
 
 @bp.route("/prueba", methods=['GET', 'POST'])
 def prueba():
     try:
-        success, value = obtenerTopProductosCateogria(idCategoria=1)
-        productos = value if success else []
+        value = obtenerProductoCategoria(idCategoria=3)
     except Exception as e:
         print(f"Error en prueba: {e}")
         import traceback
         traceback.print_exc()
         productos = []
     
-    return render_template("prueba.html", value=productos)
+    return render_template("prueba.html", value=value)
 
-@bp.route("/top5/<int:categoria_id>")
-def top5(categoria_id):
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        ref_cursor = cursor.var(oracledb.CURSOR)
-        cursor.callproc("ANDREY_GABO_CHAMO_JOSE.PKG_REPORTES_STOCK.SP_TOP5_PRODUCTOS_MAS_VENDIDOS",
-                        [categoria_id, ref_cursor])
-        rows = ref_cursor.getvalue()
-        result = []
-        for r in rows:
-            result.append({
-                "id_producto": r[0],
-                "nombre": r[1],
-                "precio_promedio": r[2],
-                "url_imagen": r[3],
-                "total_vendido": r[4]
-            })
-        return jsonify(result)
-    finally:
-        cursor.close()
-        conn.close()
+
+@bp.route('/api/obtenerDatos', methods=['GET'])
+def enviarTopCategoria5():
+    success_h, hombre = obtenerTopProductosCateogria(idCategoria=2)
+    success_m, mujeres = obtenerTopProductosCateogria(idCategoria=1)
+    success_g, gorros = obtenerTopProductosCateogria(idCategoria=3)
+
+    # Función para convertir URLs de BD a URLs correctas usando url_for
+    def procesar_productos(productos):
+        if not productos:
+            return []
+        for prod in productos:
+            if 'url' in prod and prod['url']:
+                # La URL de BD está en formato: /img/PJM-M/IMG-...jpg
+                # Necesitamos convertirla a formato que url_for genere
+                img_path = prod['url'].lstrip('/')
+                prod['url'] = url_for('static', filename=img_path)
+        return productos
+
+    return jsonify({
+        'hombre': procesar_productos(hombre if success_h else []),
+        'mujer': procesar_productos(mujeres if success_m else []),
+        'gorro': procesar_productos(gorros if success_g else [])
+    })
