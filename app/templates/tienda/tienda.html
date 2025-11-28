@@ -1,11 +1,15 @@
 {% extends "layout/base.html" %}
 {% block customCSS %} 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css//tienda/tienda.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tienda/tienda.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" 
     integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
 {% endblock %}
-{% block title %}Tienda{% endblock %}
+{% block title %}Tienda | Empijamadas{% endblock %}
 {% block content %}
+<main class="tienda-main">
+    <div class="title-section">
+        <h1>PIJAMAS</h1>
+    </div>
     <div class="breadcrumb">
         <nav class="breadcrumb-nav">
             <a href="/">Home</a>
@@ -15,21 +19,16 @@
             <span class="active">Pijamas</span>
         </nav>
     </div>
-    <div class="title-section">
-        <h1>Pijamas</h1>
-    </div>
     <div class="category-nav">
         <div class="nav-container">
             <div class="nav-tabs">
-            {% for categoria in productos %}
-                <!-- Agregar categoria mediante el procedimiento almacenado obtenerCategorias() [crear] -->
-            {% endfor %}
+                <button class="nav-tab active" data-filter="todos">Todos</button>
                 <button class="nav-tab" data-filter="nueva-coleccion">Nueva Colección</button>
                 <button class="nav-tab" data-filter="sets-completos">Sets Completos</button>
                 <button class="nav-tab" data-filter="ofertas">Ofertas</button>
             </div>
             <div class="nav-right">
-                <span class="product-count" id="productCount">21 productos</span>
+                <span class="product-count" id="productCount">{{ productos|length }} productos</span>
                 <button class="filter-btn" id="filterBtn">
                     <span>Filtrar</span>
                     <i class="bi bi-chevron-down"></i>
@@ -38,19 +37,10 @@
                     <div class="filter-option" data-sort="precio-asc">Precio: Menor a Mayor</div>
                     <div class="filter-option" data-sort="precio-desc">Precio: Mayor a Menor</div>
                     <div class="filter-option" data-sort="nombre">Nombre A-Z</div>
-                    <div class="filter-option" data-filter-category="mujer">Mujer</div>
-                    <div class="filter-option" data-filter-category="hombre">Hombre</div>
-                    <div class="filter-option" data-filter-category="gorros">Gorros</div>
                 </div>
             </div>
         </div>
     </div> 
-    <section class="tienda-header">
-        <div class="tienda-nav">
-            <button class="nav-btn active">category</button>
-            
-        </div>
-    </div>
 
     <!-- Productos -->
     <section class="products-section">
@@ -58,18 +48,27 @@
             {% for pijamas in productos %}
                 <div class="product-card" data-category="{{ pijamas.nombre_categoria }}" data-price="{{ pijamas.precio_base }}" data-name="{{ pijamas.nombre_producto }}">
                     <div class="product-img">
-                        <img src="{{ pijamas.urls_imagenes }}" 
-                            alt="{{ pijamas.nombre_producto }}">
+                        {% if pijamas.urls_imagenes %}
+                            <img src="{{ url_for('static', filename=pijamas.urls_imagenes) }}" 
+                                alt="{{ pijamas.nombre_producto }}">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='img/placeholder.png') }}" 
+                                alt="{{ pijamas.nombre_producto }}">
+                        {% endif %}
+                        <div class="product-overlay">
+                            <button class="btn-add-cart">Agregar al carrito</button>
+                        </div>
                     </div>
                     <div class="product-details">
                         <h3 class="product-name">{{ pijamas.nombre_producto }}</h3>
-                        <p class="product-price">{{ "%.2f"|format(pijamas.precio_base|float) }}</p>
+                        <p class="product-price">₡{{ "%.0f"|format(pijamas.precio_base|float) }}</p>
                     </div>
                 </div>
             {% endfor %}
         </div>
     </section>
-    {% block customJS %}
-        <script src="{{ url_for('static', filename='js/filtroTienda.js') }}"></script>
-    {% endblock %}
+</main>
+{% block customJS %}
+    <script src="{{ url_for('static', filename='js/filtroTienda.js') }}"></script>
+{% endblock %}
 {% endblock %}
