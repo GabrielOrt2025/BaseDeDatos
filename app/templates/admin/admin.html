@@ -1,0 +1,53 @@
+<!-- HTML structure for admin panel -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/admin.css') }}">
+  </head>
+  <body>
+    <header>
+      <h1>Panel Administrador</h1>
+    </header>
+
+    <main>
+      <section id="productos" class="section-box">
+        <h2>Gestion de Productos</h2>
+        <button onclick="mostrarFormulario('producto')">
+          Agregar Producto
+        </button>
+        <div id="lista-productos" class="listado"></div>
+      </section>
+
+      <section id="categorias" class="section-box">
+        <h2>Gestion de Categorias</h2>
+        <button onclick="mostrarFormulario('categoria')">
+          Agregar Categoria
+        </button>
+        <div id="lista-categorias" class="listado"></div>
+      </section>
+
+      <section id="bodegas" class="section-box">
+        <h2>Gestion de Bodegas</h2>
+        <button onclick="mostrarFormulario('bodega')">Agregar Bodega</button>
+        <div id="lista-bodegas" class="listado"></div>
+      </section>
+    </main>
+
+    <!-- Modal de Formularios -->
+    <div id="modal" class="modal hidden">
+      <div class="modal-content">
+        <h3 id="modal-title"></h3>
+        <form id="modal-form"></form>
+        <button onclick="cerrarModal()">Cerrar</button>
+      </div>
+    </div>
+
+    <footer>
+      <p>Empijamadas - Panel Administrador</p>
+    </footer>
+    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+  </body>
+</html>

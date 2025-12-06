@@ -99,3 +99,7 @@ def prueba():
 @bp.route("/base")
 def base():
     return render_template("layout/base.html")
+
+@bp.route("/admin")
+def admin():
+    return render_template("admin/admin.html")
