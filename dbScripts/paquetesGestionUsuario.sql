@@ -347,13 +347,13 @@ CREATE OR REPLACE PACKAGE PKG_GESTION_ROLES AS
         p_asignado_por IN NUMBER
     );
     
-    PROCEDURE SP_ROL_REVOCAR( -- NUEVO: Procedimiento para desactivar la asignación de rol
+    PROCEDURE SP_ROL_REVOCAR(
         p_usuario_id IN NUMBER,
         p_rol_id     IN NUMBER,
         p_revocado_por IN NUMBER
     );
     
-    PROCEDURE SP_ROLES_LEER_POR_USUARIO( -- NUEVO: Para obtener los roles asignados
+    PROCEDURE SP_ROLES_LEER_POR_USUARIO(
         p_usuario_id IN NUMBER,
         P_ROLES_CURSOR OUT SYS_REFCURSOR
     );
@@ -450,6 +450,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_GESTION_ROLES AS
             FROM USUARIO_ROLES UR
             JOIN ROLES R ON UR.ROL_ID = R.ID_ROL
             WHERE UR.USUARIO_ID = p_usuario_id
+            AND UR.ACTIVO = 1
             ORDER BY R.NOMBRE;
 
     EXCEPTION

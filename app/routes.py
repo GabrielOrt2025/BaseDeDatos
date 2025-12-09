@@ -2,11 +2,13 @@ from flask import Blueprint, jsonify, render_template, request, session, flash, 
 from .database.sp.pa import *
 from .auth import (
     login_required, guest_only, login_user, logout_user, 
-    get_current_user, is_authenticated, register_user
+    get_current_user, is_authenticated, register_user,
+    role_required, admin_required, has_role, has_any_role, is_admin
 )
 from email.message import EmailMessage
 
 bp = Blueprint("main", __name__)
+
 # Autenticacion
 @bp.route("/login", methods=["GET", "POST"])
 @guest_only
@@ -66,7 +68,7 @@ def logout():
     logout_user()
     return redirect(url_for('main.home'))
 
-        
+# Publicas
 @bp.route("/")  
 def home():
     try:
@@ -172,6 +174,13 @@ def checkout():
 def cuenta():
     return render_template("personal/cuenta.html")
 
+# Rutas con roles especificos
+@bp.route("/admin/dashboard")
+@admin_required
+def admin_dashboard():
+    return render_template("admin/dashboard.html")
+
+
 #API
 @bp.route('/api/obtenerDatos', methods=['GET'])
 def enviarTopCategoria5():
@@ -210,7 +219,10 @@ def prueba():
 def inject_user():
     return {
         'current_user' : get_current_user(),
-        'is_authenticated' : is_authenticated()
+        'is_authenticated' : is_authenticated(),
+        'has_role' : has_role,
+        'has_any_role' : has_any_role,
+        'is_admin' : is_admin()
     }
 
 @bp.route("/test-obtener-contra")
@@ -274,3 +286,70 @@ def test_obtener_contra():
         <h3>Traceback:</h3>
         <pre>{traceback.format_exc()}</pre>
         """
+
+@bp.route("/test-debug-roles")
+@login_required
+def test_debug_roles():
+    """
+    Ruta de debug para ver los roles del usuario actual
+    """
+    from .auth import get_user_roles, is_admin, has_role
+    from .database.sp.pa import obtenerRolesUsuarios as obtenerRolesDirecto
+    
+    user = get_current_user()
+    user_id = user['user_id']
+    roles = get_user_roles()
+    is_admin_flag = is_admin()
+    has_admin_role = has_role('administrador')
+    
+    # Prueba directa del procedimiento
+    print(f"\n{'='*80}")
+    print(f"🧪 PRUEBA DIRECTA DE ROLES PARA USUARIO {user_id}")
+    print(f"{'='*80}")
+    success_direct, roles_direct = obtenerRolesDirecto(user_id)
+    print(f"Success: {success_direct}, Roles: {roles_direct}")
+    print(f"{'='*80}\n")
+    
+    return f"""
+    <h1>🔐 Debug de Roles del Usuario</h1>
+    
+    <h2>📋 Usuario Actual</h2>
+    <ul>
+        <li><strong>ID:</strong> {user['user_id']}</li>
+        <li><strong>Email:</strong> {user['email']}</li>
+        <li><strong>Nombre:</strong> {user['nombre']}</li>
+    </ul>
+    
+    <h2>🎭 Roles Asignados (desde sesión)</h2>
+    <ul>
+        <li><strong>Roles cargados:</strong> {roles}</li>
+        <li><strong>Cantidad:</strong> {len(roles)}</li>
+        <li><strong>Tipo:</strong> {type(roles)}</li>
+    </ul>
+    
+    <h2>🎭 Roles Obtenidos Directamente</h2>
+    <ul>
+        <li><strong>Success:</strong> {success_direct}</li>
+        <li><strong>Roles:</strong> {roles_direct}</li>
+        <li><strong>Cantidad:</strong> {len(roles_direct)}</li>
+    </ul>
+    
+    <h2>✅ Verificaciones</h2>
+    <ul>
+        <li><strong>¿Es administrador? (is_admin()):</strong> <strong style="color: {'green' if is_admin_flag else 'red'}">{is_admin_flag}</strong></li>
+        <li><strong>¿Tiene rol 'administrador'? (has_role()):</strong> <strong style="color: {'green' if has_admin_role else 'red'}">{has_admin_role}</strong></li>
+    </ul>
+    
+    <h2>🔍 Sesión Raw</h2>
+    <pre>user_roles en sesión: {session.get('user_roles', 'No hay roles')}</pre>
+    
+    <h2>🧪 Pruebas Adicionales</h2>
+    <ul>
+        <li>Roles en minúsculas: {[r.lower() for r in roles]}</li>
+        <li>'administrador' en roles (case-insensitive): {'administrador' in [r.lower() for r in roles]}</li>
+    </ul>
+    
+    <h2>🔗 Enlaces</h2>
+    <a href="/admin/dashboard">Ir al Dashboard de Admin</a> | 
+    <a href="/">Volver al Home</a>
+    """

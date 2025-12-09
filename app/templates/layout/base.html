@@ -37,6 +37,25 @@
                 <a href="/tienda/gorros">Gorros</a>
                 <a href="/nosotros">Sobre nosotros</a>
                 <a href="/contacto">Contact Us</a>
+                
+                <!-- Links visibles solo para roles específicos -->
+                {% if is_admin %}
+                    <a href="/admin/dashboard" style="color: #ff6b6b;">
+                        <i class="bi bi-shield-check"></i> Admin
+                    </a>
+                {% endif %}
+                
+                {% if has_any_role('bodeguero', 'administrador') %}
+                    <a href="/bodega/inventario">
+                        <i class="bi bi-box-seam"></i> Bodega
+                    </a>
+                {% endif %}
+                
+                {% if has_any_role('vendedor', 'administrador') %}
+                    <a href="/ventas/dashboard">
+                        <i class="bi bi-graph-up"></i> Ventas
+                    </a>
+                {% endif %}
             </nav>
             <div class="header-icons">
                 <a href="#" class="icon-placeholder" id="search-toggle" aria-label="Buscar">
@@ -57,7 +76,19 @@
                             <div class="user-dropdown-header">
                                 <p>{{ current_user.nombre if current_user.nombre else 'Usuario' }}</p>
                                 <small>{{ current_user.email }}</small>
+                                
+                                <!-- Mostrar roles del usuario -->
+                                {% if current_user.roles %}
+                                    <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #eee;">
+                                        {% for rol in current_user.roles %}
+                                            <span style="display: inline-block; background: #e3f2fd; color: #1976d2; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin: 2px;">
+                                                {{ rol }}
+                                            </span>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
                             </div>
+                            
                             <a href="/cuenta">
                                 <i class="bi bi-person"></i>
                                 Mi Cuenta
@@ -66,6 +97,37 @@
                                 <i class="bi bi-cart"></i>
                                 Mi Carrito
                             </a>
+                            
+                            <!-- Links específicos por rol -->
+                            {% if is_admin %}
+                                <a href="/admin/dashboard">
+                                    <i class="bi bi-speedometer2"></i>
+                                    Panel Admin
+                                </a>
+                                <a href="/admin/usuarios">
+                                    <i class="bi bi-people"></i>
+                                    Gestión Usuarios
+                                </a>
+                                <a href="/admin/roles">
+                                    <i class="bi bi-shield-lock"></i>
+                                    Gestión Roles
+                                </a>
+                            {% endif %}
+                            
+                            {% if is_bodeguero %}
+                                <a href="/bodega/inventario">
+                                    <i class="bi bi-box-seam"></i>
+                                    Inventario
+                                </a>
+                            {% endif %}
+                            
+                            {% if is_vendedor %}
+                                <a href="/ventas/dashboard">
+                                    <i class="bi bi-graph-up"></i>
+                                    Mis Ventas
+                                </a>
+                            {% endif %}
+                            
                             <a href="{{ url_for('main.logout') }}" class="logout-link">
                                 <i class="bi bi-box-arrow-right"></i>
                                 Cerrar Sesión
@@ -81,6 +143,7 @@
             </div>
         </div>
     </header>
+    
     {% block content %}
     {% endblock %}
     <script src="{{ url_for('static', filename='js/search-toggle.js')}}"></script>
