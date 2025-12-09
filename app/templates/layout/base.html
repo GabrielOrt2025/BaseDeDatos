@@ -39,21 +39,47 @@
                 <a href="/contacto">Contact Us</a>
             </nav>
             <div class="header-icons">
-              <a href="#" class="icon-placeholder" id="search-toggle" aria-label="Buscar">
-                <i class="bi bi-search"></i>
-              </a>
+                <a href="#" class="icon-placeholder" id="search-toggle" aria-label="Buscar">
+                    <i class="bi bi-search"></i>
+                </a>
 
-              <a href="/carrito" class="icon-placeholder" id="cart-icon" aria-label="Carrito">
-                <i class="bi bi-cart-fill"></i>
-              </a>
+                <a href="/carrito" class="icon-placeholder" id="cart-icon" aria-label="Carrito">
+                    <i class="bi bi-cart-fill"></i>
+                </a>
 
-              <a href="/cuenta" class="icon-placeholder" id="user-icon" aria-label="Mi cuenta">
-                <i class="bi bi-person-circle"></i>
-              </a>
+                {% if is_authenticated %}
+                    <!-- Usuario autenticado: mostrar menú dropdown -->
+                    <div class="user-menu">
+                        <a href="#" class="icon-placeholder" id="user-icon" aria-label="Mi cuenta">
+                            <i class="bi bi-person-circle"></i>
+                        </a>
+                        <div class="user-dropdown" id="user-dropdown">
+                            <div class="user-dropdown-header">
+                                <p>{{ current_user.nombre if current_user.nombre else 'Usuario' }}</p>
+                                <small>{{ current_user.email }}</small>
+                            </div>
+                            <a href="/cuenta">
+                                <i class="bi bi-person"></i>
+                                Mi Cuenta
+                            </a>
+                            <a href="/carrito">
+                                <i class="bi bi-cart"></i>
+                                Mi Carrito
+                            </a>
+                            <a href="{{ url_for('main.logout') }}" class="logout-link">
+                                <i class="bi bi-box-arrow-right"></i>
+                                Cerrar Sesión
+                            </a>
+                        </div>
+                    </div>
+                {% else %}
+                    <!-- Usuario NO autenticado: link a login -->
+                    <a href="{{ url_for('main.login') }}" class="icon-placeholder" id="user-icon" aria-label="Iniciar sesión">
+                        <i class="bi bi-person-circle"></i>
+                    </a>
+                {% endif %}
             </div>
-
         </div>
-      </div>
     </header>
     {% block content %}
     {% endblock %}
