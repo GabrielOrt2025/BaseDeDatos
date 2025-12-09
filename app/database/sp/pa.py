@@ -241,7 +241,6 @@ def actualizarEstadoFactura(FACTURA_ID, NUEVO_ESTADO):
 
 
 
-# Procedimientos de gestion de usuarios
 def crearUsuario(email, password_hash, nombre):
     try:
         connection = get_db_connection()
@@ -267,41 +266,6 @@ def crearUsuario(email, password_hash, nombre):
                 connection.close()
         except:
             pass
-
-
-
-# def obtenerContraUsuario(email):
-#     try:
-#         connection = get_db_connection()
-#         cursor = connection.cursor()
-#         ref_cursor = connection.cursor()
-#         cursor.callproc("ANDREY_GABO_CHAMO_JOSE.PKG_GESTION_USUARIOS.SP_USUARIO_OBTENER_PASS", [email, ref_cursor])
-#         infoUser = []
-#         for r in ref_cursor:
-#             user = {
-#                 'passHash' : r[0],
-#                 'idUser' : r[1]
-#             }
-#             infoUser.append(user)
-#         print(infoUser)
-#         return True, infoUser
-#     except Exception as e:
-#         print(f"Error en obtenerContraUsuario: {e}")
-#         traceback.print_exc()
-#         return False, []
-
-#     finally:
-#         try:
-#             if cursor is not None:
-#                 cursor.close()
-#         except:
-#             pass
-
-#         try:
-#             if connection is not None:
-#                 connection.close()
-#         except:
-#             pass
 
 
 def actualizarPerfilUsuario(nombre, email, password_hash):
@@ -626,3 +590,141 @@ def obtenerNombreUsuario(usuario_id):
                 print(f"Connection cerrada")
         except Exception as e:
             print(f"Error cerrando connection: {e}")
+
+
+def obtenerRolesUsuarios(usuario_id):
+    connection = None
+    cursor = None
+    ref_cursor = None
+    try:
+        print(f"\n{'='*80}")
+        print(f"📞 obtenerRolesUsuarios - Usuario ID: {usuario_id}")
+        print(f"{'='*80}")
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        ref_cursor = connection.cursor()
+
+        print(f"🔍 Llamando procedimiento SP_ROLES_LEER_POR_USUARIO...")
+        cursor.callproc(
+            "ANDREY_GABO_CHAMO_JOSE.PKG_GESTION_ROLES.SP_ROLES_LEER_POR_USUARIO",
+            [usuario_id, ref_cursor]
+        )
+        print(f"✅ Procedimiento ejecutado sin errores")
+
+        roles = []
+        row_count = 0
+        print(f"🔍 Iterando resultados...")
+        for r in ref_cursor:
+            row_count += 1
+            # r[0] = ID_ROL
+            # r[1] = NOMBRE_ROL  
+            # r[2] = FECHA_ASIGNACION
+            # r[3] = ACTIVO (ya filtrado en BD)
+            role_id = r[0]
+            role_nombre = r[1]  # NOMBRE_ROL
+            role_activo = r[3]
+            roles.append(role_nombre)
+            print(f"  [{row_count}] ID: {role_id}, Nombre: {role_nombre}, Activo: {role_activo}")
+        
+        print(f"✅ Total de filas procesadas: {row_count}")
+        print(f"✅ Total de roles retornados: {len(roles)}")
+        print(f"{'='*80}\n")
+        return True, roles
+    except Exception as e:
+        print(f"❌ Error en obtenerRolesUsuarios: {e}")
+        import traceback
+        traceback.print_exc()
+        print(f"{'='*80}\n")
+        return False, []
+    finally:
+        try:
+            if ref_cursor is not None:
+                ref_cursor.close()
+        except Exception as e:
+            print(f"Error cerrando ref_cursor: {e}")
+
+        try:
+            if cursor is not None:
+                cursor.close()
+        except Exception as e:
+            print(f"Error cerrando cursor: {e}")
+
+        try:
+            if connection is not None:
+                connection.close()
+        except Exception as e:
+            print(f"Error cerrando connection: {e}")
+        
+
+def asignarRolUsuario(usuario_id, rol_id, asignado_por):
+    connection = None
+    cursor = None
+
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
+
+        cursor.callproc(
+            "ANDREY_GABO_CHAMO_JOSE.PKG_GESTION_ROLES.SP_ROL_ASIGNAR",
+            [usuario_id, rol_id, asignado_por]
+        )
+
+        connection.commit()
+        print(f"✅ Rol {rol_id} asignado al usuario {usuario_id}")
+        return True
+
+    except Exception as e:
+        print(f"❌ Error en asignarRolUsuario: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+    
+    finally:
+        try:
+            if cursor is not None:
+                cursor.close()
+        except:
+            pass
+
+        try:
+            if connection is not None:
+                connection.close()
+        except:
+            pass
+
+
+def revocarRolUsuario(usuario_id, rol_id, revocado_por):
+    connection = None
+    cursor = None
+
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
+
+        cursor.callproc(
+            "ANDREY_GABO_CHAMO_JOSE.PKG_GESTION_ROLES.SP_ROL_REVOCAR",
+            [usuario_id, rol_id, revocado_por]
+        )
+
+        connection.commit()
+        print(f"✅ Rol {rol_id} revocado al usuario {usuario_id}")
+        return True
+
+    except Exception as e:
+        print(f"❌ Error en revocarRolUsuario: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+    
+    finally:
+        try:
+            if cursor is not None:
+                cursor.close()
+        except:
+            pass
+
+        try:
+            if connection is not None:
+                connection.close()
+        except:
+            pass
