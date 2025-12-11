@@ -146,16 +146,18 @@ def tienda():
 
 @bp.route("/tienda/mujer")
 def mujer():
-    return render_template("tienda/mujer.html")
+    mujer = obtenerProductoCategoria(1)
+    return render_template("tienda/mujer.html", value=mujer)
 
 @bp.route("/tienda/hombres")
 def hombre():
-    hombres = []
-    return render_template("tienda/hombres.html")
+    hombres = obtenerProductoCategoria(2)
+    return render_template("tienda/hombres.html", value=hombres)
 
 @bp.route("/tienda/gorros")
 def gorros():
-    return render_template("tienda/gorro.html")
+    gorros = obtenerProductoCategoria(3)
+    return render_template("tienda/gorro.html", value=gorros)
 
 #login requerido
 @bp.route('/carrito')

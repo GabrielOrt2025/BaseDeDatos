@@ -44,97 +44,24 @@
 
     <section class="products-section">
         <div class="products-grid">
-            <div class="product-card" data-category="nueva-coleccion" data-price="23990" data-name="Pijama beige">
-                <div class="product-img">
-                    <img src="{{ url_for('static', filename='img/tienda3.jpeg') }}" alt="Pijama beige">
-                    <div class="product-overlay">
-                        <button class="btn-add-cart">Agregar al carrito</button>
+            {% for productos in value %}
+                <div class="product-card" data-category="nueva-coleccion" data-price="{{ productos.precio }}" data-name="{{ productos.nombre }}" data-stock="{{ productos.stock_disponible | default('disponible') }}">
+                    <div class="product-img">
+                        {% if productos.url %}
+                            <img src="{{ url_for('static', filename=productos.url) }}" alt="{{ productos.nombre }}">
+                        {% else %}
+                            <img src="{{ url_for('static', filename=img/placeholder.pngl) }}" alt="{{ productos.nombre }}">
+                        {% endif %}
+                        <div class="product-overlay">
+                            <button class="btn-add-cart">Agregar al carrito</button>
+                        </div>
+                    </div>
+                    <div class="product-details">
+                        <h3 class="product-name">{{ productos.nombre }}</h3>
+                        <p class="product-price">₡{{ "%.0f"|format(productos.precio|float) }}</p>
                     </div>
                 </div>
-                <div class="product-details">
-                    <h3 class="product-name">Pijama beige</h3>
-                    <p class="product-price">₡23,990</p>
-                </div>
-            </div>
-
-            <div class="product-card" data-category="sets" data-price="19990" data-name="Pijama de rayas azules y blancas">
-                <div class="product-img">
-                    <img src="{{ url_for('static', filename='img/tienda5.jpeg') }}" alt="Pijama de rayas">
-                    <div class="product-overlay">
-                        <button class="btn-add-cart">Agregar al carrito</button>
-                    </div>
-                </div>
-                <div class="product-details">
-                    <h3 class="product-name">Pijama de rayas azules y blancas</h3>
-                    <p class="product-price">₡19,990</p>
-                </div>
-            </div>
-
-            <div class="product-card" data-category="ofertas" data-price="3690" data-name="Dominguero">
-                <div class="product-img">
-                    <img src="{{ url_for('static', filename='img/tienda6.jpeg') }}" alt="Dominguero">
-                    <div class="product-overlay">
-                        <button class="btn-add-cart">Agregar al carrito</button>
-                    </div>
-                </div>
-                <div class="product-details">
-                    <h3 class="product-name">Dominguero</h3>
-                    <p class="product-price">₡3,690</p>
-                </div>
-            </div>
-
-            <div class="product-card" data-category="sets" data-price="17690" data-name="Set de cuadros">
-                <div class="product-img">
-                    <img src="{{ url_for('static', filename='img/tienda7.jpeg') }}" alt="Set de cuadros">
-                    <div class="product-overlay">
-                        <button class="btn-add-cart">Agregar al carrito</button>
-                    </div>
-                </div>
-                <div class="product-details">
-                    <h3 class="product-name">Set de cuadros</h3>
-                    <p class="product-price">₡17,690</p>
-                </div>
-            </div>
-
-            <div class="product-card" data-category="nueva-coleccion" data-price="7900" data-name="Pijama azul con print">
-                <div class="product-img">
-                    <img src="{{ url_for('static', filename='img/tienda9.jpeg') }}" alt="Pijama azul con print">
-                    <div class="product-overlay">
-                        <button class="btn-add-cart">Agregar al carrito</button>
-                    </div>
-                </div>
-                <div class="product-details">
-                    <h3 class="product-name">Pijama azul con print</h3>
-                    <p class="product-price">₡7,900</p>
-                </div>
-            </div>
-
-            <div class="product-card" data-category="ofertas" data-price="8900" data-name="Set azul">
-                <div class="product-img">
-                    <img src="{{ url_for('static', filename='img/tienda10.jpeg') }}" alt="Set azul">
-                    <div class="product-overlay">
-                        <button class="btn-add-cart">Agregar al carrito</button>
-                    </div>
-                </div>
-                <div class="product-details">
-                    <h3 class="product-name">Set azul</h3>
-                    <p class="product-price">₡8,900</p>
-                </div>
-            </div>
-
-            <div class="product-card" data-category="nueva-coleccion" data-price="12990" data-name="Casual cafe">
-                <div class="product-img">
-                    <img src="{{ url_for('static', filename='img/tienda17.jpeg') }}" alt="Casual cafe">
-                    <div class="product-overlay">
-                        <button class="btn-add-cart">Agregar al carrito</button>
-                    </div>
-                </div>
-                <div class="product-details">
-                    <h3 class="product-name">Casual cafe</h3>
-                    <p class="product-price">₡12,990</p>
-                </div>
-            </div>
-        </div>
+            {% endfor %}
     </section>
 </main>
 {% block customJS %}
