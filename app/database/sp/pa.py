@@ -471,13 +471,14 @@ def obtenerProductoCategoria(idCategoria):
         for r in ref_cursor:
             producto = {
                 'id': r[0],
-                'nombre': r[1],       
+                'nombre': r[1],      
                 'precio': float(r[2]) if r[2] is not None else 0.0,
                 'url': r[3],
-                'total_vendido': int(r[4]) if r[4] is not None else 0  
+                'stock_disponible': int(r[4]) if r[4] is not None else 0,
+                'stock_reservado': int(r[5]) if r[5] is not None else 0,
+                'total_vendido': int(r[6]) if r[6] is not None else 0
             }
             productos.append(producto)
-        print("Productos: ", productos)
         return productos
     except Exception as e:
         print(f"Error en obtenerProductosCategoria: {e}")
@@ -506,14 +507,8 @@ def obtenerContraUsuario(email):
             [email, password_hash_var, usuario_id_var]
         )
 
-        print(f"Procedimiento almacenado ejecutado")
-
-
         password_hash = password_hash_var.getvalue()
         usuario_id = usuario_id_var.getvalue()
-
-        print(f"🔍 password_hash: {password_hash}")
-        print(f"🔍 usuario_id: {usuario_id}")
 
         infoUser = []
         if password_hash is not None and usuario_id is not None:
@@ -522,10 +517,8 @@ def obtenerContraUsuario(email):
                 'idUser': usuario_id
             }
             infoUser.append(user)
-            print(f"Usuario encontrado: {user}")
             return True, infoUser
         else:
-            print(f"⚠️  Usuario no encontrado o parámetros NULL")
             return True, [] 
 
     except Exception as e:
@@ -564,16 +557,13 @@ def obtenerNombreUsuario(usuario_id):
         )
 
         nombre = nombre_var.getvalue()
-        print(f"🔍 Nombre obtenido: {nombre}")
 
         if nombre is not None:
             return True, nombre
         else:
-            print(f"⚠️  No se encontró nombre para usuario ID: {usuario_id}")
             return True, "Usuario"  # Valor por defecto
 
     except Exception as e:
-        print(f"❌ Error en obtenerNombreUsuario: {e}")
         traceback.print_exc()
         return False, None
     finally:
@@ -597,38 +587,18 @@ def obtenerRolesUsuarios(usuario_id):
     cursor = None
     ref_cursor = None
     try:
-        print(f"\n{'='*80}")
-        print(f"📞 obtenerRolesUsuarios - Usuario ID: {usuario_id}")
-        print(f"{'='*80}")
         connection = get_db_connection()
         cursor = connection.cursor()
         ref_cursor = connection.cursor()
-
-        print(f"🔍 Llamando procedimiento SP_ROLES_LEER_POR_USUARIO...")
         cursor.callproc(
             "ANDREY_GABO_CHAMO_JOSE.PKG_GESTION_ROLES.SP_ROLES_LEER_POR_USUARIO",
             [usuario_id, ref_cursor]
         )
-        print(f"✅ Procedimiento ejecutado sin errores")
 
         roles = []
-        row_count = 0
-        print(f"🔍 Iterando resultados...")
         for r in ref_cursor:
-            row_count += 1
-            # r[0] = ID_ROL
-            # r[1] = NOMBRE_ROL  
-            # r[2] = FECHA_ASIGNACION
-            # r[3] = ACTIVO (ya filtrado en BD)
-            role_id = r[0]
             role_nombre = r[1]  # NOMBRE_ROL
-            role_activo = r[3]
             roles.append(role_nombre)
-            print(f"  [{row_count}] ID: {role_id}, Nombre: {role_nombre}, Activo: {role_activo}")
-        
-        print(f"✅ Total de filas procesadas: {row_count}")
-        print(f"✅ Total de roles retornados: {len(roles)}")
-        print(f"{'='*80}\n")
         return True, roles
     except Exception as e:
         print(f"❌ Error en obtenerRolesUsuarios: {e}")
@@ -670,7 +640,6 @@ def asignarRolUsuario(usuario_id, rol_id, asignado_por):
         )
 
         connection.commit()
-        print(f"✅ Rol {rol_id} asignado al usuario {usuario_id}")
         return True
 
     except Exception as e:
@@ -707,7 +676,6 @@ def revocarRolUsuario(usuario_id, rol_id, revocado_por):
         )
 
         connection.commit()
-        print(f"✅ Rol {rol_id} revocado al usuario {usuario_id}")
         return True
 
     except Exception as e:

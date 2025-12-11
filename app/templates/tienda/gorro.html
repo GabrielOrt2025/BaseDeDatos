@@ -46,58 +46,24 @@
     <!--productos -->
     <section class="products-section">
         <div class="products-grid">
-            <div class="product-card" data-category="ofertas" data-price="6990" data-name="Gorro de satén">
-                <div class="product-img">
-                    <img src="{{ url_for('static', filename='img/tienda18.jpeg') }}" alt="Gorro de satén">
-                    <div class="product-overlay">
-                        <button class="btn-add-cart">Agregar al carrito</button>
+            {% for productos in value %}
+                <div class="product-card" data-category="ofertas" data-price="{{ productos.precio }}" data-name="{{ productos.nombre }}" data-stock="{{ productos.stock_disponible | default('disponible') }}">
+                    <div class="product-img">
+                    {% if productos.url %}
+                        <img src="{{ url_for('static', filename=productos.url) }}" alt="{{ productos.nombre }}">
+                    {% else %}
+                        <img src="{{ url_for('static', filename='img/placeholder.png') }}" alt="{{ pijamas.nombre_producto }}">
+                    {% endif %}
+                        <div class="product-overlay">
+                            <button class="btn-add-cart">Agregar al carrito</button>
+                        </div>
+                    </div>
+                    <div class="product-details">
+                        <h3 class="product-name">{{ productos.nombre }}</h3>
+                        <p class="product-price">₡{{ "%.0f"|format(productos.precio|float) }}0</p>
                     </div>
                 </div>
-                <div class="product-details">
-                    <h3 class="product-name">Gorro de satén</h3>
-                    <p class="product-price">₡6,990</p>
-                </div>
-            </div>
-
-            <div class="product-card" data-category="nueva-coleccion" data-price="8990" data-name="Gorro deluxe">
-                <div class="product-img">
-                    <img src="{{ url_for('static', filename='img/tienda19.jpeg') }}" alt="Gorro deluxe">
-                    <div class="product-overlay">
-                        <button class="btn-add-cart">Agregar al carrito</button>
-                    </div>
-                </div>
-                <div class="product-details">
-                    <h3 class="product-name">Gorro deluxe</h3>
-                    <p class="product-price">₡8,990</p>
-                </div>
-            </div>
-
-            <div class="product-card" data-category="premium" data-price="9990" data-name="Gorro premium">
-                <div class="product-img">
-                    <img src="{{ url_for('static', filename='img/tienda20.jpeg') }}" alt="Gorro premium">
-                    <div class="product-overlay">
-                        <button class="btn-add-cart">Agregar al carrito</button>
-                    </div>
-                </div>
-                <div class="product-details">
-                    <h3 class="product-name">Gorro premium</h3>
-                    <p class="product-price">₡9,990</p>
-                </div>
-            </div>
-
-            <div class="product-card" data-category="premium" data-price="22990" data-name="Satai perla">
-                <div class="product-img">
-                    <img src="{{ url_for('static', filename='img/tienda21.jpeg') }}" alt="Satai perla">
-                    <div class="product-overlay">
-                        <button class="btn-add-cart">Agregar al carrito</button>
-                    </div>
-                </div>
-                <div class="product-details">
-                    <h3 class="product-name">Satai perla</h3>
-                    <p class="product-price">₡22,990</p>
-                </div>
-            </div>
-        </div>
+            {% endfor %}
     </section>
 </main>
 {% block customJS %}

@@ -90,14 +90,19 @@ document.addEventListener('DOMContentLoaded', function() {
     productCards.forEach(function(card) {
         card.addEventListener('click', function() {
             const nombre = this.getAttribute('data-name');
-            const precio = this.getAttribute('data-price');
+            const precioStr = this.getAttribute('data-price');
             const imagen = this.querySelector('.product-img img').src;
+            const categoria = this.getAttribute('data-category');
+            const stock = this.getAttribute('data-stock') || 'disponible';
             
-            abrirModal(nombre, precio, imagen);
+            const precioNum = parseInt(precioStr);
+            const precioFormateado = '₡' + precioNum.toLocaleString('es-CR');
+            
+            abrirModal(nombre, precioFormateado, imagen, categoria, stock);
         });
     });
 
-    function abrirModal(nombre, precio, imagen) {
+    function abrirModal(nombre, precio, imagen, categoria, stock) {
 
         let modal = document.getElementById('modalProducto');
         
@@ -116,33 +121,19 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                         
                         <div class="modal-derecha">
+                            <div class="modal-header">
+                                <p class="modal-categoria"></p>
+                            </div>
+                            
                             <h2 class="modal-nombre"></h2>
                             <p class="modal-precio"></p>
                             
-                            <div class="selector-color">
-                                <p>Color:</p>
-                                <div class="colores">
-                                    <span class="color" style="background: #000"></span>
-                                    <span class="color" style="background: #ebd63aff"></span>
-                                    <span class="color" style="background: #e31f1fff"></span>
-                                    <span class="color" style="background: #5e5e5eff"></span>
-                                    <span class="color" style="background: #044173ff"></span>
-                                </div>
-                            </div>
-                            
-                            <div class="selector-talla">
-                                <p>Talla:</p>
-                                <div class="tallas">
-                                    <button class="talla">S</button>
-                                    <button class="talla activo">M</button>
-                                    <button class="talla">L</button>
-                                    <button class="talla">XL</button>
-                                </div>
-                            </div>
+                            <div class="modal-separador"></div>
                             
                             <div class="selector-cantidad">
+                                <p class="selector-label">Cantidad:</p>
                                 <div class="controles-cantidad">
-                                    <button class="btn-cantidad menos">-</button>
+                                    <button class="btn-cantidad menos">−</button>
                                     <input type="number" class="input-cantidad" value="1" min="1">
                                     <button class="btn-cantidad mas">+</button>
                                 </div>
@@ -152,7 +143,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                 AGREGAR AL CARRITO
                             </button>
                             
-                           
+                            <div class="modal-footer">
+                                <p class="modal-disponible"></p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -163,8 +156,25 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         modal.querySelector('.modal-nombre').textContent = nombre;
-        modal.querySelector('.modal-precio').textContent = '₡' + parseInt(precio).toLocaleString('es-CR');
+        modal.querySelector('.modal-categoria').textContent = categoria;
+        modal.querySelector('.modal-precio').textContent = precio;
         modal.querySelector('.modal-imagen').src = imagen;
+        
+        // Actualizar disponibilidad basado en stock
+        const disponibleEl = modal.querySelector('.modal-disponible');
+        if (stock && stock !== 'disponible') {
+            const stockNum = parseInt(stock);
+            if (stockNum > 0) {
+                disponibleEl.textContent = '✓ Disponible en stock (' + stock + ' unidades)';
+                disponibleEl.style.color = '#27ae60';
+            } else {
+                disponibleEl.textContent = 'No disponible en stock';
+                disponibleEl.style.color = '#e74c3c';
+            }
+        } else {
+            disponibleEl.textContent = '✓ Disponible en stock';
+            disponibleEl.style.color = '#27ae60';
+        }
         
         modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
@@ -178,8 +188,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const btnMas = modal.querySelector('.mas');
         const inputCantidad = modal.querySelector('.input-cantidad');
         const btnAgregar = modal.querySelector('.btn-agregar');
-        const colores = modal.querySelectorAll('.color');
-        const tallas = modal.querySelectorAll('.talla');
         
         btnCerrar.addEventListener('click', function() {
             modal.style.display = 'none';
@@ -203,31 +211,12 @@ document.addEventListener('DOMContentLoaded', function() {
             inputCantidad.value = valor + 1;
         });
         
-        colores.forEach(function(color) {
-            color.addEventListener('click', function() {
-                colores.forEach(function(c) {
-                    c.classList.remove('activo');
-                });
-                this.classList.add('activo');
-            });
-        });
-        
-        tallas.forEach(function(talla) {
-            talla.addEventListener('click', function() {
-                tallas.forEach(function(t) {
-                    t.classList.remove('activo');
-                });
-                this.classList.add('activo');
-            });
-        });
-        
 //este agrega al carrito
         btnAgregar.addEventListener('click', function() {
             const nombre = modal.querySelector('.modal-nombre').textContent;
             const cantidad = inputCantidad.value;
-            const talla = modal.querySelector('.talla.activo').textContent;
             
-            alert('Agregado al carrito:\n' + cantidad + 'x ' + nombre + ' (Talla: ' + talla + ')');
+            alert('Agregado al carrito:\n' + cantidad + 'x ' + nombre);
             
             modal.style.display = 'none';
             document.body.style.overflow = 'auto';

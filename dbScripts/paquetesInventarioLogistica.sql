@@ -363,7 +363,6 @@ END PKG_REPORTES_STOCK;
 /
 
 CREATE OR REPLACE PACKAGE BODY PKG_REPORTES_STOCK AS
-
     PROCEDURE SP_OBTENER_PRODUCTO_CATEGORIA(
         p_categoria_id in NUMBER,
         p_cursor OUT SYS_REFCURSOR
@@ -374,15 +373,28 @@ CREATE OR REPLACE PACKAGE BODY PKG_REPORTES_STOCK AS
         SELECT
             p.ID_PRODUCTO,
             p.NOMBRE,
-            (SELECT AVG(e.PRECIO_UNITARIO) FROM ENTRADAS e WHERE e.PRODUCTO_ID = p.ID_PRODUCTO) AS PRECIO,
-            img.URL AS URL_IMAGEN,
-            SUM(NVL(s.CANTIDAD, 0)) AS TOTAL_VENDIDO
+            p.PRECIO_BASE AS PRECIO,
+            
+            ip.URL AS URL_IMAGEN, 
+            
+            NVL(SUM(pb.CANTIDAD_DISPONIBLE), 0) AS STOCK_DISPONIBLE,
+            
+            NVL(SUM(pb.CANTIDAD_RESERVADA), 0) AS STOCK_RESERVADO,
+            
+            NVL(SUM(s.CANTIDAD), 0) AS TOTAL_VENDIDO
+            
         FROM PRODUCTOS p
+        LEFT JOIN PRODUCTOXBODEGA pb ON pb.PRODUCTO_ID = p.ID_PRODUCTO
+        
         LEFT JOIN SALIDAS s ON s.PRODUCTO_ID = p.ID_PRODUCTO
-        LEFT JOIN IMAGENES_PRODUCTOS img ON p.ID_PRODUCTO = img.PRODUCTO_ID
+        
+        LEFT JOIN IMAGENES_PRODUCTOS ip ON p.ID_PRODUCTO = ip.PRODUCTO_ID 
+            AND ip.IMAGEN_ID = (SELECT MIN(IMAGEN_ID) FROM IMAGENES_PRODUCTOS WHERE PRODUCTO_ID = p.ID_PRODUCTO)
+        
         WHERE p.ACTIVO = 1
         AND p.CATEGORIA_ID = p_categoria_id
-        GROUP BY p.ID_PRODUCTO, p.NOMBRE, img.URL
+        
+        GROUP BY p.ID_PRODUCTO, p.NOMBRE, p.PRECIO_BASE, ip.URL
         ORDER BY TOTAL_VENDIDO DESC, p.ID_PRODUCTO;
     END SP_OBTENER_PRODUCTO_CATEGORIA;
 
@@ -392,39 +404,32 @@ CREATE OR REPLACE PACKAGE BODY PKG_REPORTES_STOCK AS
     ) AS
     BEGIN
         OPEN p_cursor FOR
-            SELECT *
+            WITH PRIMERA_IMAGEN AS (
+                SELECT
+                    img.PRODUCTO_ID,
+                    img.URL,
+                    ROW_NUMBER() OVER (PARTITION BY img.PRODUCTO_ID ORDER BY img.CREADO_EN, img.IMAGEN_ID) AS rn
+                FROM IMAGENES_PRODUCTOS img
+            )
+            SELECT
+                pv.ID_PRODUCTO,
+                pv.NOMBRE,
+                (SELECT AVG(e.PRECIO_UNITARIO) FROM ENTRADAS e WHERE e.PRODUCTO_ID = pv.ID_PRODUCTO) AS PRECIO,
+                pi.URL AS URL_IMAGEN,
+                pv.TOTAL_VENDIDO
             FROM (
                 SELECT
                     p.ID_PRODUCTO,
                     p.NOMBRE,
-
-                    -- Precio promedio
-                    (SELECT AVG(e.PRECIO_UNITARIO)
-                    FROM ENTRADAS e
-                    WHERE e.PRODUCTO_ID = p.ID_PRODUCTO) AS PRECIO,
-
-                    -- Primera imagen correcta
-                    (SELECT img.URL
-                    FROM IMAGENES_PRODUCTOS img
-                    WHERE img.PRODUCTO_ID = p.ID_PRODUCTO
-                    ORDER BY img.CREADO_EN
-                    FETCH FIRST 1 ROWS ONLY) AS URL_IMAGEN,
-
-                    -- Si no hay ventas → 0
                     NVL(SUM(s.CANTIDAD), 0) AS TOTAL_VENDIDO
-
                 FROM PRODUCTOS p
-
-                -- LEFT JOIN para incluir productos sin ventas
-                LEFT JOIN SALIDAS s 
-                    ON s.PRODUCTO_ID = p.ID_PRODUCTO
-
+                LEFT JOIN SALIDAS s ON s.PRODUCTO_ID = p.ID_PRODUCTO
                 WHERE p.ACTIVO = 1
                 AND p.CATEGORIA_ID = p_categoria_id
-
                 GROUP BY p.ID_PRODUCTO, p.NOMBRE
                 ORDER BY TOTAL_VENDIDO DESC
-            )
+            ) pv
+            LEFT JOIN PRIMERA_IMAGEN pi ON pv.ID_PRODUCTO = pi.PRODUCTO_ID AND pi.rn = 1
             WHERE ROWNUM <= 5;
     END SP_TOP5_PRODUCTOS_MAS_VENDIDOS;
 
@@ -433,24 +438,27 @@ CREATE OR REPLACE PACKAGE BODY PKG_REPORTES_STOCK AS
         p_cursor OUT SYS_REFCURSOR
     )
     AS
-    BEGIN
+    BEGIN   
         OPEN p_cursor FOR
         SELECT
             p.ID_PRODUCTO,
             p.NOMBRE AS NOMBRE_PRODUCTO,
             c.NOMBRE AS NOMBRE_CATEGORIA,
             LISTAGG(ip.URL, '; ') WITHIN GROUP (ORDER BY ip.URL) AS URLS_IMAGENES,
-            p.PRECIO_BASE AS PRECIO_BASE
+            p.PRECIO_BASE AS PRECIO_BASE,
+            NVL(SUM(e.CANTIDAD), 0) - NVL(SUM(s.CANTIDAD), 0) AS STOCK_ACTUAL
         FROM PRODUCTOS p
         JOIN CATEGORIA c ON p.CATEGORIA_ID = c.CATEGORIA_ID
-        LEFT JOIN IMAGENES_PRODUCTOS ip ON p.ID_PRODUCTO = ip.PRODUCTO_ID 
+        LEFT JOIN ENTRADAS e ON e.PRODUCTO_ID = p.ID_PRODUCTO
+        LEFT JOIN SALIDAS s ON s.PRODUCTO_ID = p.ID_PRODUCTO
+        LEFT JOIN IMAGENES_PRODUCTOS ip ON p.ID_PRODUCTO = ip.PRODUCTO_ID
         WHERE p.ACTIVO = 1 
         GROUP BY
             p.ID_PRODUCTO,
             p.NOMBRE,
             c.NOMBRE,
             p.PRECIO_BASE;
-            END SP_OBTENER_PRODUCTOS_DETALLE;
+    END SP_OBTENER_PRODUCTOS_DETALLE;
 
 END PKG_REPORTES_STOCK;
 /
