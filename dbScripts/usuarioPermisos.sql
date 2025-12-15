@@ -11,34 +11,28 @@ CREATE USER BACKEND_CON IDENTIFIED BY Abr07;
 GRANT CREATE SESSION TO BACKEND_CON;
 
 DECLARE
-    v_sql VARCHAR2(500);
-BEGIN
-    FOR t IN (
-        SELECT table_name 
+    CURSOR c_tables IS
+        SELECT table_name
         FROM all_tables
-        WHERE owner = 'ANDREY_GABO_CHAMO_JOSE'
-    ) LOOP
-        v_sql := 'GRANT ALL PRIVILEGES ON ANDREY_GABO_CHAMO_JOSE.' 
-                 || t.table_name 
-                 || ' TO BACKEND_CON';
+        WHERE owner = 'ANDREY_GABO_CHAMO_JOSE';
 
-        EXECUTE IMMEDIATE v_sql;
-    END LOOP;
-END;
-/
-
-DECLARE
     v_sql VARCHAR2(500);
+    v_privilegio VARCHAR2(50) := 'DELETE';
+    v_usuario VARCHAR2(50) := 'BACKEND_CON';
+
 BEGIN
-    FOR pkg IN (
-        SELECT object_name
-        FROM all_objects
-        WHERE owner = 'ANDREY_GABO_CHAMO_JOSE'
-          AND object_type = 'PACKAGE'
-    ) LOOP
-        v_sql := 'GRANT EXECUTE ON ANDREY_GABO_CHAMO_JOSE.' || pkg.object_name || ' TO BACKEND_CON';
+    FOR r_table IN c_tables LOOP
+        v_sql := 'GRANT ' || v_privilegio || ' ON ANDREY_GABO_CHAMO_JOSE.' || r_table.table_name || ' TO ' || v_usuario;
+
+        DBMS_OUTPUT.PUT_LINE(v_sql || ';');
         EXECUTE IMMEDIATE v_sql;
     END LOOP;
+
+    DBMS_OUTPUT.PUT_LINE('Proceso de otorgamiento de permisos completado.');
+
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error al procesar: ' || SQLERRM);
 END;
 /
 
@@ -62,3 +56,16 @@ GRANT EXECUTE ON FACTURAS_PKG TO BACKEND_CON;
 
 GRANT EXECUTE ON PKG_CARRITO TO BACKEND_CON;
 GRANT EXECUTE ON PKG_VENTAS TO BACKEND_CON;
+
+SELECT
+    GRANTEE,
+    OWNER AS TABLE_OWNER,
+    TABLE_NAME,
+    PRIVILEGE,
+    GRANTABLE
+FROM
+    DBA_TAB_PRIVS
+WHERE
+    GRANTEE = 'BACKEND_CON'
+ORDER BY
+    OWNER, TABLE_NAME, PRIVILEGE;
