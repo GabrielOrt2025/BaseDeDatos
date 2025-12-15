@@ -539,14 +539,21 @@ def api_actualizar_estado_orden(orden_id):
 @bp.route("/prueba", methods=['GET', 'POST'])
 def prueba():
     try:
-        value = obtenerProductoCategoria(idCategoria=3)
+        if request.method == "POST":
+            userId = request.form.get("ui")
+            proId = request.form.get("pi")
+            can = request.form.get("can")
+            precio = request.form.get("precio")
+            print(can)
+            success, value = agregarItemCarrito(usuarioId=userId, productoId=proId, cantidad=can, precio=precio)
+            return render_template("prueba.html", value=value)
     except Exception as e:
         print(f"Error en prueba: {e}")
         import traceback
         traceback.print_exc()
         productos = []
     
-    return render_template("prueba.html", value=value)
+    return render_template("prueba.html")
 
 
 @bp.app_context_processor
@@ -559,131 +566,3 @@ def inject_user():
         'is_admin' : is_admin()
     }
 
-@bp.route("/test-obtener-contra")
-def test_obtener_contra():
-    """
-    Ruta de prueba para verificar que obtenerContraUsuario funciona.
-    Acceder en: http://localhost:5000/test-obtener-contra
-    """
-    from .database.sp.pa import obtenerContraUsuario
-    test_email = "test@test.com"
-    
-    try:
-        result = obtenerContraUsuario(test_email)
-        
-        return f"""
-        <h1>Prueba de obtenerContraUsuario</h1>
-        <h2>Email probado: {test_email}</h2>
-        <h3>Resultado:</h3>
-        <pre>
-        Tipo: {type(result)}
-        Longitud: {len(result) if isinstance(result, (tuple, list)) else 'N/A'}
-        Contenido: {result}
-        </pre>
-        
-        <h3>Análisis:</h3>
-        <ul>
-        <li>¿Es tupla?: {isinstance(result, tuple)}</li>
-        <li>¿Tiene 2 elementos?: {len(result) == 2 if isinstance(result, tuple) else False}</li>
-        """
-        
-        if isinstance(result, tuple) and len(result) == 2:
-            success, info_user = result
-            html += f"""
-            <li>success = {success}</li>
-            <li>info_user = {info_user}</li>
-            <li>Tipo de info_user: {type(info_user)}</li>
-            <li>Longitud de info_user: {len(info_user) if isinstance(info_user, list) else 'N/A'}</li>
-            """
-            
-            if isinstance(info_user, list) and len(info_user) > 0:
-                html += f"""
-                <li>Primer elemento: {info_user[0]}</li>
-                <li>passHash existe: {'passHash' in info_user[0]}</li>
-                <li>idUser existe: {'idUser' in info_user[0]}</li>
-                """
-                if 'passHash' in info_user[0]:
-                    html += f"<li>passHash (primeros 50 chars): {info_user[0]['passHash'][:50]}...</li>"
-                if 'idUser' in info_user[0]:
-                    html += f"<li>idUser: {info_user[0]['idUser']}</li>"
-        
-        html += "</ul>"
-        return html
-        
-    except Exception as e:
-        import traceback
-        return f"""
-        <h1>❌ Error en la prueba</h1>
-        <h2>Email probado: {test_email}</h2>
-        <h3>Error:</h3>
-        <pre>{str(e)}</pre>
-        <h3>Traceback:</h3>
-        <pre>{traceback.format_exc()}</pre>
-        """
-
-@bp.route("/test-debug-roles")
-@login_required
-def test_debug_roles():
-    """
-    Ruta de debug para ver los roles del usuario actual
-    """
-    from .auth import get_user_roles, is_admin, has_role
-    from .database.sp.pa import obtenerRolesUsuarios as obtenerRolesDirecto
-    
-    user = get_current_user()
-    user_id = user['user_id']
-    roles = get_user_roles()
-    is_admin_flag = is_admin()
-    has_admin_role = has_role('administrador')
-    
-    # Prueba directa del procedimiento
-    print(f"\n{'='*80}")
-    print(f"🧪 PRUEBA DIRECTA DE ROLES PARA USUARIO {user_id}")
-    print(f"{'='*80}")
-    success_direct, roles_direct = obtenerRolesDirecto(user_id)
-    print(f"Success: {success_direct}, Roles: {roles_direct}")
-    print(f"{'='*80}\n")
-    
-    return f"""
-    <h1>🔐 Debug de Roles del Usuario</h1>
-    
-    <h2>📋 Usuario Actual</h2>
-    <ul>
-        <li><strong>ID:</strong> {user['user_id']}</li>
-        <li><strong>Email:</strong> {user['email']}</li>
-        <li><strong>Nombre:</strong> {user['nombre']}</li>
-    </ul>
-    
-    <h2>🎭 Roles Asignados (desde sesión)</h2>
-    <ul>
-        <li><strong>Roles cargados:</strong> {roles}</li>
-        <li><strong>Cantidad:</strong> {len(roles)}</li>
-        <li><strong>Tipo:</strong> {type(roles)}</li>
-    </ul>
-    
-    <h2>🎭 Roles Obtenidos Directamente</h2>
-    <ul>
-        <li><strong>Success:</strong> {success_direct}</li>
-        <li><strong>Roles:</strong> {roles_direct}</li>
-        <li><strong>Cantidad:</strong> {len(roles_direct)}</li>
-    </ul>
-    
-    <h2>✅ Verificaciones</h2>
-    <ul>
-        <li><strong>¿Es administrador? (is_admin()):</strong> <strong style="color: {'green' if is_admin_flag else 'red'}">{is_admin_flag}</strong></li>
-        <li><strong>¿Tiene rol 'administrador'? (has_role()):</strong> <strong style="color: {'green' if has_admin_role else 'red'}">{has_admin_role}</strong></li>
-    </ul>
-    
-    <h2>🔍 Sesión Raw</h2>
-    <pre>user_roles en sesión: {session.get('user_roles', 'No hay roles')}</pre>
-    
-    <h2>🧪 Pruebas Adicionales</h2>
-    <ul>
-        <li>Roles en minúsculas: {[r.lower() for r in roles]}</li>
-        <li>'administrador' en roles (case-insensitive): {'administrador' in [r.lower() for r in roles]}</li>
-    </ul>
-    
-    <h2>🔗 Enlaces</h2>
-    <a href="/admin/dashboard">Ir al Dashboard de Admin</a> | 
-    <a href="/">Volver al Home</a>
-    """

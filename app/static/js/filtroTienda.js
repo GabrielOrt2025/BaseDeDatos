@@ -1,12 +1,3 @@
-// ============================================
-// ACTUALIZACIÓN PARA MODALES DE PRODUCTOS
-// Agregar esta función en filtro.js y filtroTienda.js
-// ============================================
-
-// Modificar la función del botón "Agregar al carrito" en el modal
-
-// ANTES de configurarEventosModal, agregar esta función:
-
 async function agregarProductoDesdeModal(productoId, nombre, precio) {
     const cantidadInput = document.querySelector('.input-cantidad');
     const cantidad = cantidadInput ? parseInt(cantidadInput.value) : 1;
@@ -120,7 +111,7 @@ function mostrarNotificacionModal(mensaje, tipo = 'info') {
 
 // En la función abrirModal, cambiar la línea del botón agregar para incluir el precio:
 
-function abrirModal(nombre, precio, imagen, categoria, stock) {
+function abrirModal(nombre, precio, imagen, categoria, stock, productoId) {
     let modal = document.getElementById('modalProducto');
     
     if (!modal) {
@@ -182,9 +173,14 @@ function abrirModal(nombre, precio, imagen, categoria, stock) {
     
     // Guardar ID y precio en el botón
     const btnAgregar = modal.querySelector('.btn-agregar');
+    let precioLimpio = precio.toString().replace('₡', '').replace(/,/g, '').trim();
+    console.log("Abriendo modal para ID:", productoId);
+
     if (productoId) {
         btnAgregar.setAttribute('data-producto-id', productoId);
-        btnAgregar.setAttribute('data-precio', precio.replace('₡', '').replace(/,/g, ''));
+        btnAgregar.setAttribute('data-precio', precioLimpio);
+    } else {
+        console.error("¡CUIDADO! Se abrió el modal sin ID de producto");
     }
     
     // Actualizar disponibilidad
@@ -211,50 +207,119 @@ function abrirModal(nombre, precio, imagen, categoria, stock) {
 // MODIFICAR configurarEventosModal
 // ============================================
 
-function configurarEventosModal(modal) {
-    const btnCerrar = modal.querySelector('.modal-cerrar');
-    const fondo = modal.querySelector('.modal-fondo');
-    const btnMenos = modal.querySelector('.menos');
-    const btnMas = modal.querySelector('.mas');
-    const inputCantidad = modal.querySelector('.input-cantidad');
+function abrirModal(nombre, precio, imagen, categoria, stock, productoId) { 
+    let modal = document.getElementById('modalProducto');
+    
+    // Si el modal no existe, lo crea
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'modalProducto';
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-fondo"></div>
+            <div class="modal-caja">
+                <button class="modal-cerrar">&times;</button>
+                
+                <div class="modal-contenido">
+                    <div class="modal-izquierda">
+                        <img src="" class="modal-imagen" alt="Producto">
+                    </div>
+                    
+                    <div class="modal-derecha">
+                        <div class="modal-header">
+                            <p class="modal-categoria"></p>
+                        </div>
+                        
+                        <h2 class="modal-nombre"></h2>
+                        <p class="modal-precio"></p>
+                        
+                        <div class="modal-separador"></div>
+                        
+                        <div class="selector-cantidad">
+                            <p class="selector-label">Cantidad:</p>
+                            <div class="controles-cantidad">
+                                <button class="btn-cantidad menos">−</button>
+                                <input type="number" class="input-cantidad" value="1" min="1">
+                                <button class="btn-cantidad mas">+</button>
+                            </div>
+                        </div>
+                        
+                        <button class="btn-agregar" data-producto-id="" data-precio="">
+                            AGREGAR AL CARRITO
+                        </button>
+                        
+                        <div class="modal-footer">
+                            <p class="modal-disponible"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        configurarEventosModal(modal);
+    }
+    
+    // Asignar los valores a los elementos del modal
+    modal.querySelector('.modal-nombre').textContent = nombre;
+    modal.querySelector('.modal-categoria').textContent = categoria;
+    modal.querySelector('.modal-precio').textContent = precio;
+    modal.querySelector('.modal-imagen').src = imagen;
+    
+    // Guardar ID y precio en el botón btn-agregar
     const btnAgregar = modal.querySelector('.btn-agregar');
+    if (productoId) {
+        btnAgregar.setAttribute('data-producto-id', productoId);
+        // Asegúrate de limpiar el precio si viene con símbolos
+        let precioLimpio = precio.toString().replace('₡', '').replace(/,/g, '').trim();
+        btnAgregar.setAttribute('data-precio', precioLimpio);
+    }
     
-    btnCerrar.addEventListener('click', function() {
-        modal.style.display = 'none';
-        document.body.style.overflow = 'auto';
-    });
-    
-    fondo.addEventListener('click', function() {
-        modal.style.display = 'none';
-        document.body.style.overflow = 'auto';
-    });
-    
-    btnMenos.addEventListener('click', function() {
-        let valor = parseInt(inputCantidad.value);
-        if (valor > 1) {
-            inputCantidad.value = valor - 1;
-        }
-    });
-    
-    btnMas.addEventListener('click', function() {
-        let valor = parseInt(inputCantidad.value);
-        inputCantidad.value = valor + 1;
-    });
-    
-    // MODIFICAR EL EVENT LISTENER DEL BOTÓN AGREGAR
-    btnAgregar.addEventListener('click', function() {
-        const productoId = this.getAttribute('data-producto-id');
-        const precio = parseFloat(this.getAttribute('data-precio'));
-        const nombre = modal.querySelector('.modal-nombre').textContent;
-        
-        if (productoId && precio) {
-            agregarProductoDesdeModal(parseInt(productoId), nombre, precio);
+    // Actualizar disponibilidad
+    const disponibleEl = modal.querySelector('.modal-disponible');
+    if (stock && stock !== 'disponible') {
+        const stockNum = parseInt(stock);
+        if (stockNum > 0) {
+            disponibleEl.textContent = '✓ Disponible en stock (' + stock + ' unidades)';
+            disponibleEl.style.color = '#27ae60';
         } else {
-            console.error('No se encontró ID o precio del producto');
-            mostrarNotificacionModal('Error: No se pudo identificar el producto', 'error');
+            disponibleEl.textContent = 'No disponible en stock';
+            disponibleEl.style.color = '#e74c3c';
         }
-    });
+    } else {
+        disponibleEl.textContent = '✓ Disponible en stock';
+        disponibleEl.style.color = '#27ae60';
+    }
+    
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Seleccionamos ambos tipos de botones
+    const botonesAccion = document.querySelectorAll('.btn-view-product');
+
+    botonesAccion.forEach(boton => {
+        boton.addEventListener('click', (e) => {
+            e.preventDefault();
+            
+            const card = boton.closest('.product-card');
+            
+            // 1. Extracción de datos
+            const id = card.getAttribute('data-producto-id');
+            const nombre = card.getAttribute('data-name');
+            const precio = card.getAttribute('data-price');
+            const categoria = card.getAttribute('data-category');
+            const stock = card.getAttribute('data-stock');
+            
+            // 2. Buscar imagen
+            const imgElement = card.querySelector('.product-img img');
+            const imagen = imgElement ? imgElement.src : '';
+
+            // 3. Abrir Modal con los datos
+            abrirModal(nombre, precio, imagen, categoria, stock, id);
+        });
+    });
+});
 
 // ============================================
 // AGREGAR data-producto-id A LAS TARJETAS

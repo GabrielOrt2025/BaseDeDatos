@@ -1,3 +1,4 @@
+# app/database/sp/carrito.py - VERSIÓN COMPLETAMENTE CORREGIDA
 from ..conexionDB import get_db_connection
 import oracledb
 import traceback
@@ -8,16 +9,14 @@ def agregarItemCarrito(usuarioId, productoId, cantidad, precio):
     try:
         connection = get_db_connection()
         cursor = connection.cursor()
-
         cursor.callproc(
             "ANDREY_GABO_CHAMO_JOSE.PKG_CARRITO.SP_CARRITO_AGREGAR_ITEM",
             [usuarioId, productoId, cantidad, precio]
         )
-
         connection.commit()
-        return True, "Producto agregado con exito"
+        return True, "Producto agregado con éxito"
     except Exception as e:
-        print(f"Erro en agregarItemCarrito => {e}")
+        print(f"Error en agregarItemCarrito => {e}")
         traceback.print_exc()
         return False, str(e)
     finally:
@@ -28,6 +27,9 @@ def agregarItemCarrito(usuarioId, productoId, cantidad, precio):
 
 
 def obtenerCarrito(usuarioId):
+    """
+    Obtiene todos los items del carrito del usuario
+    """
     connection = None
     cursor = None
     ref_cursor = None
@@ -58,7 +60,7 @@ def obtenerCarrito(usuarioId):
         return True, items
     except Exception as e:
         print(f"Error en obtenerCarrito: {e}")
-        traceback.format_exc()
+        traceback.print_exc()
         return False, []
     finally:
         if ref_cursor:
@@ -74,15 +76,16 @@ def actualizarCantidadItem(usuarioId, productoId, cantidad):
     cursor = None
     try:
         connection = get_db_connection()
-        cursor = connection.cursor
+        cursor = connection.cursor()  # ✅ CORRECCIÓN: era cursor.cursor
+        
         cursor.callproc(
-                "ANDREY_GABO_CHAMO_JOSE.PKG_CARRITO.SP_CARRITO_ACTUALIZAR_CANTIDAD",
-                [usuarioId, productoId, cantidad]
-            )
+            "ANDREY_GABO_CHAMO_JOSE.PKG_CARRITO.SP_CARRITO_ACTUALIZAR_CANTIDAD",
+            [usuarioId, productoId, cantidad]
+        )
         connection.commit()
         return True, "Cantidad actualizada exitosamente"
     except Exception as e:
-        print(f"Error en actualizarCantidadItem {e}")
+        print(f"Error en actualizarCantidadItem: {e}")
         traceback.print_exc()
         return False, str(e)
     finally:
@@ -91,7 +94,9 @@ def actualizarCantidadItem(usuarioId, productoId, cantidad):
         if connection:
             connection.close()
 
+
 def eliminarItemCarrito(usuarioId, productoId):
+
     connection = None
     cursor = None
     try:
@@ -117,6 +122,7 @@ def eliminarItemCarrito(usuarioId, productoId):
 
 
 def vaciarCarrito(usuarioId):
+
     connection = None
     cursor = None
     try:
@@ -143,21 +149,24 @@ def vaciarCarrito(usuarioId):
 
 
 def calcularTotalCarrito(usuarioId):
+    """
+    Calcula el total del carrito del usuario
+    """
     connection = None
     cursor = None
     try:
         connection = get_db_connection()
         cursor = connection.cursor()
-        total = cursor.var(oracledb.NUMBER)
+        
 
-        cursor.callfunc(
+        total = cursor.callfunc(
             "ANDREY_GABO_CHAMO_JOSE.PKG_CARRITO.FN_CARRITO_CALCULAR_TOTAL",
-            oracledb.NUMBER, [usuarioId]
+            oracledb.NUMBER,
+            [usuarioId]
         )
-
-        total = cursor.fetchone()[0]
+        
         total = float(total) if total else 0.0
-
+        
         return True, total
     except Exception as e:
         print(f"Error en calcularTotalCarrito: {e}")
@@ -171,16 +180,23 @@ def calcularTotalCarrito(usuarioId):
 
 
 def contarItemsCarrito(usuarioId):
+    """
+    Cuenta el número total de items en el carrito
+    """
     connection = None
     cursor = None
     try:
         connection = get_db_connection()
         cursor = connection.cursor()
+        
         count = cursor.callfunc(
             "ANDREY_GABO_CHAMO_JOSE.PKG_CARRITO.FN_CARRITO_CONTAR_ITEMS",
-            oracledb.NUMBER, [usuarioId]
+            oracledb.NUMBER,
+            [usuarioId]
         )
+        
         count = int(count) if count else 0
+        
         return True, count
     except Exception as e:
         print(f"Error en contarItemsCarrito: {e}")

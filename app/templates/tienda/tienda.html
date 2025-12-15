@@ -46,8 +46,9 @@
     <section class="products-section">
         <div class="products-grid">
             {% for pijamas in productos %}
+            <form action="" ></form>
                 <div class="product-card"
-                    data-producto-id = "{{ pijamas.id }}" 
+                    data-producto-id = "{{ pijamas.id_producto }}" 
                     data-category="{{ pijamas.nombre_categoria }}" 
                     data-price="{{ pijamas.precio_base }}" 
                     data-name="{{ pijamas.nombre_producto }}" 
@@ -62,6 +63,7 @@
                         {% endif %}
                         <div class="product-overlay">
                             <button class="btn-add-cart">Agregar al carrito</button>
+                            <button class="btn-view-product"><i class="bi bi-eye-fill"></i></button>
                         </div>
                     </div>
                     <div class="product-details">
