@@ -1,5 +1,7 @@
 from flask import Blueprint, jsonify, render_template, request, session, flash, redirect, url_for, current_app
 from .database.sp.pa import *
+from .database.sp.carrito import *
+from .database.sp.ventas import *
 from .auth import (
     login_required, guest_only, login_user, logout_user, 
     get_current_user, is_authenticated, register_user,
@@ -203,6 +205,336 @@ def enviarTopCategoria5():
         'mujer': procesar_productos(mujeres if success_m else []),
         'gorro': procesar_productos(gorros if success_g else [])
     })
+
+
+@bp.route('/api/carrito', methods=['GET'])
+@login_required
+def api_obtener_carrito():
+    try:
+        user_id = session.get('user_id')
+        success, items = obtenerCarrito(user_id)
+        
+        if success:
+            # Calcular totales
+            success_total, total = calcularTotalCarrito(user_id)
+            success_count, count = contarItemsCarrito(user_id)
+            
+            return jsonify({
+                'success': True,
+                'items': items,
+                'total': total if success_total else 0,
+                'count': count if success_count else 0
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Error al obtener carrito'
+            }), 500
+            
+    except Exception as e:
+        print(f"Error en api_obtener_carrito: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@bp.route('/api/carrito/agregar', methods=['POST'])
+@login_required
+def api_agregar_al_carrito():
+    try:
+        data = request.get_json()
+        user_id = session.get('user_id')
+        
+        producto_id = data.get('producto_id')
+        cantidad = data.get('cantidad', 1)
+        precio_unitario = data.get('precio_unitario')
+        
+        if not producto_id or not precio_unitario:
+            return jsonify({
+                'success': False,
+                'error': 'Datos incompletos'
+            }), 400
+        
+        success, mensaje = agregarItemCarrito(
+            user_id, producto_id, cantidad, precio_unitario
+        )
+        
+        if success:
+            # Obtener contador actualizado
+            success_count, count = contarItemsCarrito(user_id)
+            
+            return jsonify({
+                'success': True,
+                'mensaje': mensaje,
+                'count': count if success_count else 0
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': mensaje
+            }), 500
+            
+    except Exception as e:
+        print(f"Error en api_agregar_al_carrito: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@bp.route('/api/carrito/actualizar', methods=['POST'])
+@login_required
+def api_actualizar_carrito():
+    try:
+        data = request.get_json()
+        user_id = session.get('user_id')
+        
+        producto_id = data.get('producto_id')
+        cantidad = data.get('cantidad')
+        
+        if not producto_id or cantidad is None:
+            return jsonify({
+                'success': False,
+                'error': 'Datos incompletos'
+            }), 400
+        
+        success, mensaje = actualizarCantidadItem(user_id, producto_id, cantidad)
+        
+        if success:
+            # Recalcular total
+            success_total, total = calcularTotalCarrito(user_id)
+            
+            return jsonify({
+                'success': True,
+                'mensaje': mensaje,
+                'total': total if success_total else 0
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': mensaje
+            }), 500
+            
+    except Exception as e:
+        print(f"Error en api_actualizar_carrito: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@bp.route('/api/carrito/eliminar/<int:producto_id>', methods=['DELETE'])
+@login_required
+def api_eliminar_item_carrito(producto_id):
+    try:
+        user_id = session.get('user_id')
+        
+        success, mensaje = eliminarItemCarrito(user_id, producto_id)
+        
+        if success:
+            # Recalcular totales
+            success_total, total = calcularTotalCarrito(user_id)
+            success_count, count = contarItemsCarrito(user_id)
+            
+            return jsonify({
+                'success': True,
+                'mensaje': mensaje,
+                'total': total if success_total else 0,
+                'count': count if success_count else 0
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': mensaje
+            }), 500
+            
+    except Exception as e:
+        print(f"Error en api_eliminar_item_carrito: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@bp.route('/api/carrito/vaciar', methods=['POST'])
+@login_required
+def api_vaciar_carrito():
+    try:
+        user_id = session.get('user_id')
+        
+        success, mensaje = vaciarCarrito(user_id)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'mensaje': mensaje
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': mensaje
+            }), 500
+            
+    except Exception as e:
+        print(f"Error en api_vaciar_carrito: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@bp.route('/api/carrito/count', methods=['GET'])
+@login_required
+def api_carrito_count():
+    try:
+        user_id = session.get('user_id')
+        success, count = contarItemsCarrito(user_id)
+        
+        return jsonify({
+            'success': True,
+            'count': count if success else 0
+        })
+        
+    except Exception as e:
+        print(f"Error en api_carrito_count: {e}")
+        return jsonify({
+            'success': False,
+            'count': 0
+        })
+
+
+@bp.route('/api/orden/crear', methods=['POST'])
+@login_required
+def api_crear_orden():
+    try:
+        data = request.get_json()
+        user_id = session.get('user_id')
+        
+        sucursal_id = data.get('sucursal_id', 1)  # Sucursal por defecto
+        direccion_envio_id = data.get('direccion_envio_id')
+        metodo_pago = data.get('metodo_pago', 'EFECTIVO')
+        notas = data.get('notas', '')
+        
+        if not direccion_envio_id:
+            return jsonify({
+                'success': False,
+                'error': 'Debe proporcionar una dirección de envío'
+            }), 400
+        
+        success, resultado = crearOrdenDesdeCarrito(
+            user_id, sucursal_id, direccion_envio_id, metodo_pago, notas
+        )
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'orden_id': resultado['orden_id'],
+                'numero_orden': resultado['numero_orden'],
+                'mensaje': resultado['mensaje']
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': resultado.get('error', 'Error al crear orden')
+            }), 500
+            
+    except Exception as e:
+        print(f"Error en api_crear_orden: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@bp.route('/api/ordenes', methods=['GET'])
+@login_required
+def api_obtener_ordenes():
+    try:
+        user_id = session.get('user_id')
+        success, ordenes = obtenerOrdenesPorUsuario(user_id)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'ordenes': ordenes
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Error al obtener órdenes'
+            }), 500
+            
+    except Exception as e:
+        print(f"Error en api_obtener_ordenes: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@bp.route('/api/orden/<int:orden_id>', methods=['GET'])
+@login_required
+def api_detalle_orden(orden_id):
+    try:
+        success_items, items = obtenerDetalleOrden(orden_id)
+        success_factura, factura = obtenerFacturaPorOrden(orden_id)
+        
+        if success_items:
+            return jsonify({
+                'success': True,
+                'items': items,
+                'factura': factura if success_factura else None
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Error al obtener detalle de orden'
+            }), 500
+            
+    except Exception as e:
+        print(f"Error en api_detalle_orden: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@bp.route('/api/orden/<int:orden_id>/estado', methods=['PUT'])
+@admin_required
+def api_actualizar_estado_orden(orden_id):
+    try:
+        data = request.get_json()
+        nuevo_estado = data.get('estado')
+        
+        if not nuevo_estado:
+            return jsonify({
+                'success': False,
+                'error': 'Debe proporcionar un estado'
+            }), 400
+        
+        success, mensaje = actualizarEstadoOrden(orden_id, nuevo_estado)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'mensaje': mensaje
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': mensaje
+            }), 500
+            
+    except Exception as e:
+        print(f"Error en api_actualizar_estado_orden: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 
 @bp.route("/prueba", methods=['GET', 'POST'])
 def prueba():
