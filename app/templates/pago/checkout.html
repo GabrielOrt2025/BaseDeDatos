@@ -1,95 +1,216 @@
 {% extends "layout/base.html" %}
 {% block customCSS %}
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='css/pago/checkout.css') }}"
-    />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pago/checkout.css') }}">
 {% endblock %}
 {% block content %}
-  </head>
-  <body>
-    <div class="checkout-container">
-      <h1>Checkout</h1>
 
-      <div class="checkout-content">
+<div class="checkout-container">
+    <h1>Finalizar Compra</h1>
+
+    <div class="checkout-content">
         <!-- Resumen del Pedido -->
         <div class="order-summary">
-          <h2>Resumen del Pedido</h2>
-          <div id="cart-items"></div>
-          <div class="totals">
-            <div class="total-line">
-              <span>Subtotal:</span>
-              <span id="subtotal">$0.00</span>
+            <h2>Resumen del Pedido</h2>
+            
+            <div id="loading-cart" style="text-align: center; padding: 40px;">
+                <div class="spinner"></div>
+                <p>Cargando carrito...</p>
             </div>
-            <div class="total-line">
-              <span>Envío:</span>
-              <span id="shipping">$0.00</span>
+            
+            <div id="cart-items" style="display: none;"></div>
+            
+            <div id="cart-empty" style="display: none; text-align: center; padding: 40px;">
+                <i class="bi bi-cart-x" style="font-size: 3rem; color: #ccc;"></i>
+                <p>Tu carrito está vacío</p>
+                <a href="/tienda" class="btn-primary">Ir a la tienda</a>
             </div>
-            <div class="total-line">
-              <span>Impuestos:</span>
-              <span id="taxes">$0.00</span>
+            
+            <div id="totals-section" style="display: none;">
+                <div class="totals">
+                    <div class="total-line">
+                        <span>Subtotal:</span>
+                        <span id="subtotal">₡0.00</span>
+                    </div>
+                    <div class="total-line">
+                        <span>Envío:</span>
+                        <span id="shipping">₡0.00</span>
+                    </div>
+                    <div class="total-line">
+                        <span>Impuestos (13%):</span>
+                        <span id="taxes">₡0.00</span>
+                    </div>
+                    <div class="total-line grand-total">
+                        <span>Total:</span>
+                        <span id="total">₡0.00</span>
+                    </div>
+                </div>
             </div>
-            <div class="total-line grand-total">
-              <span>Total:</span>
-              <span id="total">$0.00</span>
-            </div>
-          </div>
         </div>
 
         <!-- Formulario de Envío y Pago -->
         <div class="checkout-form">
-          <h2>Información de Envío y Pago</h2>
-          <form id="shipping-payment-form">
-            <div class="form-group">
-              <label for="name">Nombre completo</label>
-              <input type="text" id="name" required />
-            </div>
-            <div class="form-group">
-              <label for="address">Dirección</label>
-              <input type="text" id="address" required />
-            </div>
-            <div class="form-group">
-              <label for="city">Ciudad</label>
-              <input type="text" id="city" required />
-            </div>
-            <div class="form-group">
-              <label for="zip">Código Postal</label>
-              <input type="text" id="zip" required />
-            </div>
-            <div class="form-group">
-              <label for="country">País</label>
-              <select id="country" required>
-                <option value="">Selecciona un país</option>
-                <option value="MX">México</option>
-                <option value="US">Estados Unidos</option>
-                <!-- Más opciones -->
-              </select>
-            </div>
+            <h2>Información de Envío</h2>
+            
+            <form id="checkout-form">
+                <!-- Dirección de Envío -->
+                <div class="form-section">
+                    <h3>Dirección de Entrega</h3>
+                    
+                    <div id="direcciones-guardadas" style="margin-bottom: 20px;">
+                        <label>Selecciona una dirección guardada:</label>
+                        <select id="select-direccion" class="form-control" style="width: 100%; padding: 10px; margin-top: 8px; border-radius: 5px;">
+                            <option value="">Seleccionar dirección...</option>
+                        </select>
+                        <button type="button" class="btn-secondary" onclick="mostrarFormularioDireccion()" style="margin-top: 10px;">
+                            + Agregar Nueva Dirección
+                        </button>
+                    </div>
+                    
+                    <div id="nueva-direccion" style="display: none;">
+                        <div class="form-group">
+                            <label for="nombre-destinatario">Nombre del Destinatario *</label>
+                            <input type="text" id="nombre-destinatario" name="nombre-destinatario" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="telefono">Teléfono *</label>
+                            <input type="tel" id="telefono" name="telefono" required placeholder="8888-8888">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="direccion">Dirección Completa *</label>
+                            <textarea id="direccion" name="direccion" required rows="3" placeholder="Calle, número, señas"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="ciudad">Ciudad *</label>
+                            <input type="text" id="ciudad" name="ciudad" required>
+                        </div>
+                        
+                        <div class="form-group half">
+                            <label for="provincia">Provincia *</label>
+                            <select id="provincia" name="provincia" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="San José">San José</option>
+                                <option value="Alajuela">Alajuela</option>
+                                <option value="Cartago">Cartago</option>
+                                <option value="Heredia">Heredia</option>
+                                <option value="Guanacaste">Guanacaste</option>
+                                <option value="Puntarenas">Puntarenas</option>
+                                <option value="Limón">Limón</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group half">
+                            <label for="codigo-postal">Código Postal</label>
+                            <input type="text" id="codigo-postal" name="codigo-postal" placeholder="10101">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="guardar-direccion" name="guardar-direccion">
+                                Guardar esta dirección para futuras compras
+                            </label>
+                        </div>
+                    </div>
+                </div>
 
-            <h3>Información de Pago</h3>
-            <div class="form-group">
-              <label for="card-number">Número de Tarjeta</label>
-              <input type="text" id="card-number" required />
-            </div>
-            <div class="form-group">
-              <label for="card-name">Nombre en la Tarjeta</label>
-              <input type="text" id="card-name" required />
-            </div>
-            <div class="form-group half">
-              <label for="expiry">Fecha de Expiración</label>
-              <input type="text" id="expiry" placeholder="MM/AA" required />
-            </div>
-            <div class="form-group half">
-              <label for="cvv">CVV</label>
-              <input type="text" id="cvv" required />
-            </div>
+                <!-- Método de Pago -->
+                <div class="form-section">
+                    <h3>Método de Pago</h3>
+                    
+                    <div class="payment-methods">
+                        <label class="payment-option">
+                            <input type="radio" name="metodo-pago" value="EFECTIVO" checked>
+                            <div class="payment-card">
+                                <i class="bi bi-cash-coin"></i>
+                                <span>Efectivo contra entrega</span>
+                            </div>
+                        </label>
+                        
+                        <label class="payment-option">
+                            <input type="radio" name="metodo-pago" value="SINPE">
+                            <div class="payment-card">
+                                <i class="bi bi-phone"></i>
+                                <span>SINPE Móvil</span>
+                            </div>
+                        </label>
+                        
+                        <label class="payment-option">
+                            <input type="radio" name="metodo-pago" value="TARJETA">
+                            <div class="payment-card">
+                                <i class="bi bi-credit-card"></i>
+                                <span>Tarjeta de Crédito/Débito</span>
+                            </div>
+                        </label>
+                        
+                        <label class="payment-option">
+                            <input type="radio" name="metodo-pago" value="TRANSFERENCIA">
+                            <div class="payment-card">
+                                <i class="bi bi-bank"></i>
+                                <span>Transferencia Bancaria</span>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <!-- Info de pago según método seleccionado -->
+                    <div id="info-sinpe" class="payment-info" style="display: none;">
+                        <p><strong>Número SINPE:</strong> 8888-8888</p>
+                        <p>Envía el comprobante por WhatsApp después de realizar el pago.</p>
+                    </div>
+                    
+                    <div id="info-transferencia" class="payment-info" style="display: none;">
+                        <p><strong>Banco:</strong> Banco Nacional</p>
+                        <p><strong>Cuenta:</strong> CR12 0151 0841 1026 8210 69</p>
+                        <p><strong>Titular:</strong> Empijamadas S.A.</p>
+                    </div>
+                </div>
 
-            <button type="submit" class="submit-btn">Realizar Pedido</button>
-          </form>
+                <!-- Notas Adicionales -->
+                <div class="form-group">
+                    <label for="notas">Notas del Pedido (Opcional)</label>
+                    <textarea id="notas" name="notas" rows="3" placeholder="Instrucciones especiales de entrega..."></textarea>
+                </div>
+
+                <!-- Términos y Condiciones -->
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="aceptar-terminos" required>
+                        Acepto los <a href="/terminos" target="_blank">términos y condiciones</a>
+                    </label>
+                </div>
+
+                <button type="submit" id="btn-finalizar" class="submit-btn">
+                    <i class="bi bi-check-circle"></i> Finalizar Compra
+                </button>
+            </form>
         </div>
-      </div>
     </div>
+</div>
+
+<!-- Modal de Confirmación -->
+<div id="modal-confirmacion" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>¡Pedido Realizado con Éxito!</h2>
+        </div>
+        <div class="modal-body">
+            <div class="success-icon">
+                <i class="bi bi-check-circle-fill" style="font-size: 4rem; color: #10b981;"></i>
+            </div>
+            <p>Tu pedido ha sido registrado correctamente.</p>
+            <p><strong>Número de Orden:</strong> <span id="numero-orden"></span></p>
+            <p>Recibirás un correo con los detalles de tu compra.</p>
+        </div>
+        <div class="modal-footer">
+            <a href="/mis-pedidos" class="btn-primary">Ver Mis Pedidos</a>
+            <a href="/tienda" class="btn-secondary">Seguir Comprando</a>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
+
 {% block customJS %}
   <script src="{{ url_for('static', filename='js/checkout.js') }}"></script>
 {% endblock %}
