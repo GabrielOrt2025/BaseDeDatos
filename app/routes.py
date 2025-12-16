@@ -261,14 +261,19 @@ def api_agregar_al_carrito():
         )
         
         if success:
-            # Obtener contador actualizado
-            success_count, count = contarItemsCarrito(user_id)
-            
-            return jsonify({
-                'success': True,
-                'mensaje': mensaje,
-                'count': count if success_count else 0
-            })
+            successReserva = reservar_producto(productoId=producto_id, cantidad=cantidad)
+            if successReserva: 
+                success_count, count = contarItemsCarrito(user_id)
+                return jsonify({
+                    'success': True,
+                    'mensaje': mensaje,
+                    'count': count if success_count else 0
+                })
+            else:
+                return jsonify({
+                    'success': False,
+                    'error': mensaje
+                }), 500
         else:
             return jsonify({
                 'success': False,
@@ -298,13 +303,9 @@ def api_actualizar_carrito():
                 'success': False,
                 'error': 'Datos incompletos'
             }), 400
-        
         success, mensaje = actualizarCantidadItem(user_id, producto_id, cantidad)
-        
         if success:
-            # Recalcular total
             success_total, total = calcularTotalCarrito(user_id)
-            
             return jsonify({
                 'success': True,
                 'mensaje': mensaje,
@@ -315,6 +316,12 @@ def api_actualizar_carrito():
                 'success': False,
                 'error': mensaje
             }), 500
+    except Exception as e:
+        print(f"Error en api_actualizar_carrito: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
             
     except Exception as e:
         print(f"Error en api_actualizar_carrito: {e}")
@@ -329,20 +336,31 @@ def api_actualizar_carrito():
 def api_eliminar_item_carrito(producto_id):
     try:
         user_id = session.get('user_id')
-        
-        success, mensaje = eliminarItemCarrito(user_id, producto_id)
+        success, mensaje, cantidadEliminada = eliminarItemCarrito(user_id, producto_id)
         
         if success:
-            # Recalcular totales
-            success_total, total = calcularTotalCarrito(user_id)
-            success_count, count = contarItemsCarrito(user_id)
+            successLiberar, msgLiberar = liberar_cantidad_reservada(
+                productoId=producto_id, 
+                cantidad=cantidadEliminada
+            )
             
-            return jsonify({
-                'success': True,
-                'mensaje': mensaje,
-                'total': total if success_total else 0,
-                'count': count if success_count else 0
-            })
+            if successLiberar:
+                success_total, total = calcularTotalCarrito(user_id)
+                success_count, count = contarItemsCarrito(user_id)
+                
+                return jsonify({
+                    'success': True,
+                    'mensaje': mensaje,
+                    'total': total if success_total else 0,
+                    'count': count if success_count else 0,
+                    'cantidad_liberada': cantidadEliminada
+                })
+            else:
+                print(f"ALERTA: Item eliminado pero fallo liberación de stock: {msgLiberar}")
+                return jsonify({
+                    'success': True, 
+                    'mensaje': "Item eliminado (Advertencia: Stock no liberado correctamente)"
+                })
         else:
             return jsonify({
                 'success': False,
@@ -535,18 +553,30 @@ def api_actualizar_estado_orden(orden_id):
             'error': str(e)
         }), 500
 
+@bp.route('/api/producto/<int:producto_id>/stock', methods=['GET'])
+def api_verificar_stock(producto_id):
+    try:
+        success, stock = obtenerStockProducto(producto_id)
+        
+        return jsonify({
+            'success': True,
+            'stock_disponible': stock if success else 0
+        })
+    except Exception as e:
+        print(f"Error en api_verificar_stock: {e}")
+        return jsonify({
+            'success': False,
+            'stock_disponible': 0
+        })
 
 @bp.route("/prueba", methods=['GET', 'POST'])
 def prueba():
     try:
         if request.method == "POST":
-            userId = request.form.get("ui")
             proId = request.form.get("pi")
             can = request.form.get("can")
-            precio = request.form.get("precio")
-            print(can)
-            success, value = agregarItemCarrito(usuarioId=userId, productoId=proId, cantidad=can, precio=precio)
-            return render_template("prueba.html", value=value)
+            value1, value = verificarStockDisponible(productoId=proId, cantidadSolicitada=can)
+            return render_template("prueba.html", value=value, value1=value1)
     except Exception as e:
         print(f"Error en prueba: {e}")
         import traceback

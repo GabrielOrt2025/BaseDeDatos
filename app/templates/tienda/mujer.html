@@ -46,7 +46,11 @@
     <section class="products-section">
         <div class="products-grid">
             {% for productos in value %}
-                <div class="product-card" data-category="nueva-coleccion" data-price="{{ productos.precio }}" data-name="{{ productos.nombre }}" data-stock="{{ productos.stock_disponible | default('disponible') }}">
+                <div class="product-card"
+                data-producto-id="{{ productos.id }}" 
+                data-price="{{ productos.precio }}" 
+                data-name="{{ productos.nombre }}" 
+                data-stock="{{ productos.stock_disponible | default('disponible') }}">
                     <div class="product-img">
                         {% if productos.url %}
                             <img src="{{ url_for('static', filename=productos.url) }}" alt="{{ productos.nombre }}">
@@ -55,6 +59,7 @@
                         {% endif %}
                         <div class="product-overlay">
                             <button class="btn-add-cart">Agregar al carrito</button>
+                            <button class="btn-view-product"><i class="bi bi-eye-fill"></i></button>
                         </div>
                     </div>
                     <div class="product-details">

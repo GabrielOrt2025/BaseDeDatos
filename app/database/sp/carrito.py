@@ -1,12 +1,49 @@
-# app/database/sp/carrito.py - VERSIÓN COMPLETAMENTE CORREGIDA
+# app/database/sp/carrito.py - VERSIÓN CON VALIDACIÓN DE STOCK
 from ..conexionDB import get_db_connection
 import oracledb
 import traceback
+
+def verificarStockDisponible(productoId, cantidadSolicitada):
+    """
+    Verifica si hay stock disponible para un producto
+    Retorna: (bool, int) - (tiene_stock, stock_disponible)
+    """
+    connection = None
+    cursor = None
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        tiene_stock_out = cursor.var(int)
+        stock_total = cursor.callfunc(
+            'ANDREY_GABO_CHAMO_JOSE.PKG_REPORTES_STOCK.SP_VERIFICAR_STOCK_DISPONIBLE',
+            int, [productoId, cantidadSolicitada, tiene_stock_out]
+        )
+        
+        tiene_stock_bool = (tiene_stock_out.getvalue() == 1)
+        
+        return tiene_stock_bool, stock_total
+        
+    except Exception as e:
+        print(f"Error en verificarStockDisponible: {e}")
+        traceback.print_exc()
+        return False, str(e)
+    finally:
+        if cursor:
+            cursor.close()
+        if connection:
+            connection.close()
+
 
 def agregarItemCarrito(usuarioId, productoId, cantidad, precio):
     connection = None
     cursor = None
     try:
+        # Verificar stock disponible
+        tiene_stock, stock_disponible = verificarStockDisponible(productoId, cantidad)
+        
+        if not tiene_stock:
+            return False, f"Stock insuficiente. Solo hay {stock_disponible} unidades disponibles."
+        
         connection = get_db_connection()
         cursor = connection.cursor()
         cursor.callproc(
@@ -75,8 +112,14 @@ def actualizarCantidadItem(usuarioId, productoId, cantidad):
     connection = None
     cursor = None
     try:
+        # Verificar stock disponible antes de actualizar
+        tiene_stock, stock_disponible = verificarStockDisponible(productoId, cantidad)
+        
+        if not tiene_stock:
+            return False, f"Stock insuficiente. Solo hay {stock_disponible} unidades disponibles."
+        
         connection = get_db_connection()
-        cursor = connection.cursor()  # ✅ CORRECCIÓN: era cursor.cursor
+        cursor = connection.cursor()
         
         cursor.callproc(
             "ANDREY_GABO_CHAMO_JOSE.PKG_CARRITO.SP_CARRITO_ACTUALIZAR_CANTIDAD",
@@ -102,14 +145,15 @@ def eliminarItemCarrito(usuarioId, productoId):
     try:
         connection = get_db_connection()
         cursor = connection.cursor()
+        cantidadEliminada = cursor.var(oracledb.NUMBER)
         
         cursor.callproc(
             "ANDREY_GABO_CHAMO_JOSE.PKG_CARRITO.SP_CARRITO_ELIMINAR_ITEM",
-            [usuarioId, productoId]
+            [usuarioId, productoId, cantidadEliminada]
         )
 
         connection.commit()
-        return True, "Item eliminado exitosamente"
+        return True, "Item eliminado exitosamente", cantidadEliminada.getvalue()
     except Exception as e:
         print(f"Error en eliminarItemCarrito: {e}")
         traceback.print_exc()
@@ -207,3 +251,62 @@ def contarItemsCarrito(usuarioId):
             cursor.close()
         if connection:
             connection.close()
+
+
+def obtenerStockProducto(productoId):
+    """
+    Obtiene el stock disponible total de un producto
+    """
+    tiene_stock, stock_disponible = verificarStockDisponible(productoId, 0)
+    return True, stock_disponible
+
+
+def reservar_producto(productoId, cantidad):
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        resultado = cursor.var(oracledb.STRING)
+        cursor.callproc("ANDREY_GABO_CHAMO_JOSE.PKG_CARRITO.SP_ACTUALIZAR_CANTIDAD_RESERVADA", 
+                        [productoId, 2, cantidad, resultado])
+        
+        estado = resultado.getvalue()
+
+        if estado == 'EXITOSO':
+            return True, estado
+        else:
+            return False, estado
+    except Exception as e:
+        print(f"Error en contarItemsCarrito: {e}")
+        traceback.print_exc()
+        return False, 0
+    finally:
+        if cursor:
+            cursor.close()
+        if connection:
+            connection.close()
+
+
+def liberar_cantidad_reservada(productoId, cantidad):
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        resultado = cursor.var(oracledb.STRING)
+
+        cursor.callproc("ANDREY_GABO_CHAMO_JOSE.PKG_CARRITO.SP_LIBERAR_CANTIDAD_RESERVADA", 
+                        [productoId, 2, cantidad, resultado])
+        estado = resultado.getvalue()
+
+        if estado == 'EXITOSO':
+            return True, estado
+        else:
+            return False, estado
+    except Exception as e:
+        print(f"Error en contarItemsCarrito: {e}")
+        traceback.print_exc()
+        return False, 0
+    finally:
+        if cursor:
+            cursor.close()
+        if connection:
+            connection.close()
+    

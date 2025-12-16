@@ -48,11 +48,11 @@
             {% for pijamas in productos %}
             <form action="" ></form>
                 <div class="product-card"
-                    data-producto-id = "{{ pijamas.id_producto }}" 
+                    data-producto-id = "{{ pijamas.id }}" 
                     data-category="{{ pijamas.nombre_categoria }}" 
                     data-price="{{ pijamas.precio_base }}" 
                     data-name="{{ pijamas.nombre_producto }}" 
-                    data-stock="{{ pijamas.stock_disponible | default('disponible') }}">
+                    data-stock="{{ pijamas.stock_disponible }}">
                     <div class="product-img">
                         {% if pijamas.urls_imagenes %}
                             <img src="{{ url_for('static', filename=pijamas.urls_imagenes) }}" 

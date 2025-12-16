@@ -385,7 +385,8 @@ def obtenerDetallesProducto():
                 'nombre_producto': r[1],
                 'nombre_categoria': r[2],
                 'urls_imagenes': r[3],
-                'precio_base': r[4]
+                'precio_base': r[4],
+                'stock_disponible': r[5] if len(r) > 5 else 0
             })
         return productos
 
