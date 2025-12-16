@@ -359,10 +359,46 @@ CREATE OR REPLACE PACKAGE PKG_REPORTES_STOCK AS
         p_cursor OUT SYS_REFCURSOR
     );
 
+    FUNCTION SP_VERIFICAR_STOCK_DISPONIBLE(
+        p_producto_id IN   NUMBER,
+        p_cantidad_solicitada IN   NUMBER,
+        p_tiene_stock OUT  NUMBER
+    ) RETURN NUMBER;
+
 END PKG_REPORTES_STOCK;
 /
 
 CREATE OR REPLACE PACKAGE BODY PKG_REPORTES_STOCK AS
+    FUNCTION SP_VERIFICAR_STOCK_DISPONIBLE(
+        p_producto_id         IN   NUMBER,
+        p_cantidad_solicitada IN   NUMBER,
+        p_tiene_stock         OUT  NUMBER
+    )
+    RETURN NUMBER
+    IS
+        v_stock_total NUMBER(10, 0) := 0;
+    BEGIN
+        SELECT NVL(SUM(CANTIDAD_DISPONIBLE), 0)
+        INTO v_stock_total
+        FROM PRODUCTOXBODEGA
+        WHERE PRODUCTO_ID = p_producto_id;
+
+        IF v_stock_total >= p_cantidad_solicitada THEN
+            p_tiene_stock := 1;
+        ELSE
+            p_tiene_stock := 0;
+        END IF;
+
+        RETURN v_stock_total;
+
+    EXCEPTION
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('Error en SP_VERIFICAR_STOCK_DISPONIBLE: ' || SQLERRM);
+            p_tiene_stock := 0;
+            RETURN 0;
+
+    END SP_VERIFICAR_STOCK_DISPONIBLE;
+    
     PROCEDURE SP_OBTENER_PRODUCTO_CATEGORIA(
         p_categoria_id in NUMBER,
         p_cursor OUT SYS_REFCURSOR
@@ -446,9 +482,10 @@ CREATE OR REPLACE PACKAGE BODY PKG_REPORTES_STOCK AS
             c.NOMBRE AS NOMBRE_CATEGORIA,
             LISTAGG(ip.URL, '; ') WITHIN GROUP (ORDER BY ip.URL) AS URLS_IMAGENES,
             p.PRECIO_BASE AS PRECIO_BASE,
-            NVL(SUM(e.CANTIDAD), 0) - NVL(SUM(s.CANTIDAD), 0) AS STOCK_ACTUAL
+            NVL(SUM(pb.CANTIDAD_DISPONIBLE - NVL(pb.CANTIDAD_RESERVADA, 0)), 0) AS STOCK_ACTUAL
         FROM PRODUCTOS p
         JOIN CATEGORIA c ON p.CATEGORIA_ID = c.CATEGORIA_ID
+        LEFT JOIN PRODUCTOXBODEGA pb ON pb.PRODUCTO_ID = p.ID_PRODUCTO
         LEFT JOIN ENTRADAS e ON e.PRODUCTO_ID = p.ID_PRODUCTO
         LEFT JOIN SALIDAS s ON s.PRODUCTO_ID = p.ID_PRODUCTO
         LEFT JOIN IMAGENES_PRODUCTOS ip ON p.ID_PRODUCTO = ip.PRODUCTO_ID

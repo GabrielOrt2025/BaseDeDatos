@@ -4,7 +4,20 @@
 
 CREATE OR REPLACE PACKAGE PKG_CARRITO AS
     
-    -- Procedimientos
+    PROCEDURE SP_ACTUALIZAR_CANTIDAD_RESERVADA(
+        p_id_producto IN NUMBER,
+        p_id_bodega IN NUMBER,
+        p_cantidad_a_reservar IN NUMBER,
+        p_resultado OUT VARCHAR2
+    );
+
+    PROCEDURE SP_LIBERAR_CANTIDAD_RESERVADA(
+        p_id_producto IN NUMBER,
+        p_id_bodega IN NUMBER,
+        p_cantidad_a_liberar IN NUMBER,
+        p_resultado OUT VARCHAR2
+    );
+
     PROCEDURE SP_CARRITO_OBTENER_O_CREAR(
         p_usuario_id IN NUMBER,
         p_carrito_id OUT NUMBER
@@ -25,7 +38,8 @@ CREATE OR REPLACE PACKAGE PKG_CARRITO AS
     
     PROCEDURE SP_CARRITO_ELIMINAR_ITEM(
         p_usuario_id IN NUMBER,
-        p_producto_id IN NUMBER
+        p_producto_id IN NUMBER,
+        p_cantidad_eliminada OUT NUMBER
     );
     
     PROCEDURE SP_CARRITO_VACIAR(
@@ -51,28 +65,99 @@ END PKG_CARRITO;
 
 CREATE OR REPLACE PACKAGE BODY PKG_CARRITO AS
 
-    -- Obtener o crear carrito para un usuario
+    PROCEDURE SP_ACTUALIZAR_CANTIDAD_RESERVADA (
+        p_id_producto IN NUMBER,
+        p_id_bodega IN NUMBER,
+        p_cantidad_a_reservar IN NUMBER,
+        p_resultado OUT VARCHAR2
+    )
+    AS
+        v_stock_neto_actual NUMBER;
+    BEGIN
+        SELECT (CANTIDAD_DISPONIBLE - NVL(CANTIDAD_RESERVADA, 0))
+        INTO v_stock_neto_actual
+        FROM PRODUCTOXBODEGA
+        WHERE PRODUCTO_ID = p_id_producto
+          AND BODEGA_ID = p_id_bodega
+        FOR UPDATE;
+
+        IF v_stock_neto_actual >= p_cantidad_a_reservar THEN
+            UPDATE PRODUCTOXBODEGA
+            SET CANTIDAD_RESERVADA = NVL(CANTIDAD_RESERVADA, 0) + p_cantidad_a_reservar
+            WHERE PRODUCTO_ID = p_id_producto
+              AND BODEGA_ID = p_id_bodega;
+
+            p_resultado := 'EXITO';
+            COMMIT; 
+        ELSE
+            p_resultado := 'ERROR: Stock insuficiente. Disponible real: ' || v_stock_neto_actual;
+            ROLLBACK;
+        END IF;
+        
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            p_resultado := 'ERROR: Producto/Bodega no encontrados.';
+            ROLLBACK;
+        WHEN OTHERS THEN
+            p_resultado := 'ERROR DESCONOCIDO: ' || SQLERRM;
+            ROLLBACK;
+    END SP_ACTUALIZAR_CANTIDAD_RESERVADA;
+
+    PROCEDURE SP_LIBERAR_CANTIDAD_RESERVADA (
+        p_id_producto IN NUMBER,
+        p_id_bodega IN NUMBER,
+        p_cantidad_a_liberar IN NUMBER,
+        p_resultado OUT VARCHAR2
+    )
+    AS
+        v_cantidad_reservada_actual NUMBER;
+    BEGIN
+        SELECT NVL(CANTIDAD_RESERVADA, 0)
+        INTO v_cantidad_reservada_actual
+        FROM PRODUCTOXBODEGA
+        WHERE PRODUCTO_ID = p_id_producto
+          AND BODEGA_ID = p_id_bodega
+        FOR UPDATE;
+
+        IF v_cantidad_reservada_actual >= p_cantidad_a_liberar THEN
+            UPDATE PRODUCTOXBODEGA
+            SET CANTIDAD_RESERVADA = CANTIDAD_RESERVADA - p_cantidad_a_liberar
+            WHERE PRODUCTO_ID = p_id_producto
+              AND BODEGA_ID = p_id_bodega;
+
+            p_resultado := 'EXITO';
+            COMMIT; 
+        ELSE
+            p_resultado := 'ERROR: Intenta liberar mas de lo reservado.';
+            ROLLBACK;
+        END IF;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            p_resultado := 'ERROR: Producto no encontrado.';
+            ROLLBACK;
+        WHEN OTHERS THEN
+            p_resultado := 'ERROR: ' || SQLERRM;
+            ROLLBACK;
+    END SP_LIBERAR_CANTIDAD_RESERVADA;
+
     PROCEDURE SP_CARRITO_OBTENER_O_CREAR(
         p_usuario_id IN NUMBER,
         p_carrito_id OUT NUMBER
     )
     AS
     BEGIN
-        -- Intentar obtener carrito existente
         BEGIN
             SELECT CARRITO_ID INTO p_carrito_id
             FROM CARRITO
             WHERE USUARIO_ID = p_usuario_id;
         EXCEPTION
             WHEN NO_DATA_FOUND THEN
-                -- Crear nuevo carrito
                 INSERT INTO CARRITO (USUARIO_ID)
                 VALUES (p_usuario_id)
                 RETURNING CARRITO_ID INTO p_carrito_id;
         END;
     END SP_CARRITO_OBTENER_O_CREAR;
 
-    -- Agregar item al carrito
     PROCEDURE SP_CARRITO_AGREGAR_ITEM(
         p_usuario_id IN NUMBER,
         p_producto_id IN NUMBER,
@@ -83,53 +168,27 @@ CREATE OR REPLACE PACKAGE BODY PKG_CARRITO AS
         v_carrito_id NUMBER;
         v_cantidad_existente NUMBER := 0;
     BEGIN
-        -- Validaciones
-        IF p_cantidad <= 0 THEN
-            RAISE_APPLICATION_ERROR(-20301, 'La cantidad debe ser mayor a cero.');
-        END IF;
+        IF p_cantidad <= 0 THEN RAISE_APPLICATION_ERROR(-20301, 'Cantidad debe ser > 0'); END IF;
         
-        IF p_precio_unitario < 0 THEN
-            RAISE_APPLICATION_ERROR(-20302, 'El precio unitario no puede ser negativo.');
-        END IF;
-        
-        -- Obtener o crear carrito
         SP_CARRITO_OBTENER_O_CREAR(p_usuario_id, v_carrito_id);
         
-        -- Verificar si el producto ya existe en el carrito
         BEGIN
             SELECT CANTIDAD INTO v_cantidad_existente
             FROM ITEM_CARRITO
-            WHERE CARRITO_ID = v_carrito_id
-            AND PRODUCTO_ID = p_producto_id;
+            WHERE CARRITO_ID = v_carrito_id AND PRODUCTO_ID = p_producto_id;
             
-            -- Si existe, actualizar cantidad
             UPDATE ITEM_CARRITO
-            SET CANTIDAD = v_cantidad_existente + p_cantidad,
-                ACTUALIZADO_EN = SYSDATE
-            WHERE CARRITO_ID = v_carrito_id
-            AND PRODUCTO_ID = p_producto_id;
-            
+            SET CANTIDAD = v_cantidad_existente + p_cantidad, ACTUALIZADO_EN = SYSDATE
+            WHERE CARRITO_ID = v_carrito_id AND PRODUCTO_ID = p_producto_id;
         EXCEPTION
             WHEN NO_DATA_FOUND THEN
-                -- Si no existe, insertar nuevo item
-                INSERT INTO ITEM_CARRITO (
-                    CARRITO_ID, PRODUCTO_ID, CANTIDAD, PRECIO_UNITARIO
-                ) VALUES (
-                    v_carrito_id, p_producto_id, p_cantidad, p_precio_unitario
-                );
+                INSERT INTO ITEM_CARRITO (CARRITO_ID, PRODUCTO_ID, CANTIDAD, PRECIO_UNITARIO) 
+                VALUES (v_carrito_id, p_producto_id, p_cantidad, p_precio_unitario);
         END;
         
-        -- Actualizar fecha del carrito
-        UPDATE CARRITO
-        SET ACTUALIZADO_EN = SYSDATE
-        WHERE CARRITO_ID = v_carrito_id;
-        
-    EXCEPTION
-        WHEN OTHERS THEN
-            RAISE_APPLICATION_ERROR(-20303, 'Error al agregar item al carrito: ' || SQLERRM);
+        UPDATE CARRITO SET ACTUALIZADO_EN = SYSDATE WHERE CARRITO_ID = v_carrito_id;
     END SP_CARRITO_AGREGAR_ITEM;
 
-    -- Actualizar cantidad de un item
     PROCEDURE SP_CARRITO_ACTUALIZAR_CANTIDAD(
         p_usuario_id IN NUMBER,
         p_producto_id IN NUMBER,
@@ -137,85 +196,91 @@ CREATE OR REPLACE PACKAGE BODY PKG_CARRITO AS
     )
     AS
         v_carrito_id NUMBER;
+        v_cantidad_anterior NUMBER;
+        v_diferencia NUMBER;
+        v_bodega_default CONSTANT NUMBER := 2;
+        v_resultado_reserva VARCHAR2(200);
     BEGIN
-        IF p_cantidad <= 0 THEN
-            RAISE_APPLICATION_ERROR(-20304, 'La cantidad debe ser mayor a cero.');
-        END IF;
+        IF p_cantidad <= 0 THEN RAISE_APPLICATION_ERROR(-20304, 'Cantidad debe ser > 0'); END IF;
         
         SP_CARRITO_OBTENER_O_CREAR(p_usuario_id, v_carrito_id);
         
-        UPDATE ITEM_CARRITO
-        SET CANTIDAD = p_cantidad,
-            ACTUALIZADO_EN = SYSDATE
-        WHERE CARRITO_ID = v_carrito_id
-        AND PRODUCTO_ID = p_producto_id;
-        
-        IF SQL%ROWCOUNT = 0 THEN
-            RAISE_APPLICATION_ERROR(-20305, 'Item no encontrado en el carrito.');
+        BEGIN
+            SELECT CANTIDAD INTO v_cantidad_anterior
+            FROM ITEM_CARRITO
+            WHERE CARRITO_ID = v_carrito_id AND PRODUCTO_ID = p_producto_id;
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN RAISE_APPLICATION_ERROR(-20305, 'Item no encontrado');
+        END;
+
+        v_diferencia := p_cantidad - v_cantidad_anterior;
+
+        IF v_diferencia > 0 THEN
+            SP_ACTUALIZAR_CANTIDAD_RESERVADA(p_producto_id, v_bodega_default, v_diferencia, v_resultado_reserva);
+            IF v_resultado_reserva != 'EXITO' THEN RAISE_APPLICATION_ERROR(-20306, 'Fallo reserva: ' || v_resultado_reserva); END IF;
+        ELSIF v_diferencia < 0 THEN
+            SP_LIBERAR_CANTIDAD_RESERVADA(p_producto_id, v_bodega_default, ABS(v_diferencia), v_resultado_reserva);
+            IF v_resultado_reserva != 'EXITO' THEN RAISE_APPLICATION_ERROR(-20307, 'Fallo liberar: ' || v_resultado_reserva); END IF;
         END IF;
+
+        UPDATE ITEM_CARRITO SET CANTIDAD = p_cantidad, ACTUALIZADO_EN = SYSDATE
+        WHERE CARRITO_ID = v_carrito_id AND PRODUCTO_ID = p_producto_id;
         
-        UPDATE CARRITO
-        SET ACTUALIZADO_EN = SYSDATE
-        WHERE CARRITO_ID = v_carrito_id;
-        
+        UPDATE CARRITO SET ACTUALIZADO_EN = SYSDATE WHERE CARRITO_ID = v_carrito_id;
+        COMMIT;
     EXCEPTION
-        WHEN OTHERS THEN
-            RAISE_APPLICATION_ERROR(-20306, 'Error al actualizar cantidad: ' || SQLERRM);
+        WHEN OTHERS THEN ROLLBACK; RAISE;
     END SP_CARRITO_ACTUALIZAR_CANTIDAD;
 
-    -- Eliminar item del carrito
     PROCEDURE SP_CARRITO_ELIMINAR_ITEM(
         p_usuario_id IN NUMBER,
-        p_producto_id IN NUMBER
+        p_producto_id IN NUMBER,
+        p_cantidad_eliminada OUT NUMBER
     )
     AS
         v_carrito_id NUMBER;
     BEGIN
         SP_CARRITO_OBTENER_O_CREAR(p_usuario_id, v_carrito_id);
         
-        DELETE FROM ITEM_CARRITO
-        WHERE CARRITO_ID = v_carrito_id
-        AND PRODUCTO_ID = p_producto_id;
-        
-        IF SQL%ROWCOUNT = 0 THEN
-            RAISE_APPLICATION_ERROR(-20307, 'Item no encontrado en el carrito.');
-        END IF;
-        
-        UPDATE CARRITO
-        SET ACTUALIZADO_EN = SYSDATE
-        WHERE CARRITO_ID = v_carrito_id;
-        
-    EXCEPTION
-        WHEN OTHERS THEN
-            RAISE_APPLICATION_ERROR(-20308, 'Error al eliminar item: ' || SQLERRM);
+        BEGIN
+            SELECT CANTIDAD INTO p_cantidad_eliminada
+            FROM ITEM_CARRITO
+            WHERE CARRITO_ID = v_carrito_id AND PRODUCTO_ID = p_producto_id;
+            
+            DELETE FROM ITEM_CARRITO
+            WHERE CARRITO_ID = v_carrito_id AND PRODUCTO_ID = p_producto_id;
+            
+            UPDATE CARRITO SET ACTUALIZADO_EN = SYSDATE WHERE CARRITO_ID = v_carrito_id;
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN p_cantidad_eliminada := 0; -- No existía
+        END;
     END SP_CARRITO_ELIMINAR_ITEM;
 
-    -- Vaciar carrito
     PROCEDURE SP_CARRITO_VACIAR(
         p_usuario_id IN NUMBER
     )
     AS
         v_carrito_id NUMBER;
+        v_resultado VARCHAR2(100);
+        v_bodega_default CONSTANT NUMBER := 2;
+        CURSOR c_items IS SELECT PRODUCTO_ID, CANTIDAD FROM ITEM_CARRITO WHERE CARRITO_ID = v_carrito_id;
     BEGIN
         BEGIN
-            SELECT CARRITO_ID INTO v_carrito_id
-            FROM CARRITO
-            WHERE USUARIO_ID = p_usuario_id;
+            SELECT CARRITO_ID INTO v_carrito_id FROM CARRITO WHERE USUARIO_ID = p_usuario_id;
             
-            DELETE FROM ITEM_CARRITO
-            WHERE CARRITO_ID = v_carrito_id;
+            FOR item IN c_items LOOP
+                SP_LIBERAR_CANTIDAD_RESERVADA(item.PRODUCTO_ID, v_bodega_default, item.CANTIDAD, v_resultado);
+            END LOOP;
             
-            UPDATE CARRITO
-            SET ACTUALIZADO_EN = SYSDATE
-            WHERE CARRITO_ID = v_carrito_id;
-            
+            DELETE FROM ITEM_CARRITO WHERE CARRITO_ID = v_carrito_id;
+            UPDATE CARRITO SET ACTUALIZADO_EN = SYSDATE WHERE CARRITO_ID = v_carrito_id;
+            COMMIT;
         EXCEPTION
-            WHEN NO_DATA_FOUND THEN
-                NULL; -- No hay carrito, no hacer nada
+            WHEN NO_DATA_FOUND THEN NULL;
+            WHEN OTHERS THEN ROLLBACK; RAISE;
         END;
     END SP_CARRITO_VACIAR;
 
-    -- Leer items del carrito
     PROCEDURE SP_CARRITO_LEER(
         p_usuario_id IN NUMBER,
         p_items OUT SYS_REFCURSOR
@@ -224,90 +289,40 @@ CREATE OR REPLACE PACKAGE BODY PKG_CARRITO AS
         v_carrito_id NUMBER;
     BEGIN
         BEGIN
-            SELECT CARRITO_ID INTO v_carrito_id
-            FROM CARRITO
-            WHERE USUARIO_ID = p_usuario_id;
-            
+            SELECT CARRITO_ID INTO v_carrito_id FROM CARRITO WHERE USUARIO_ID = p_usuario_id;
             OPEN p_items FOR
-                SELECT 
-                    ic.ITEM_CARRITO_ID,
-                    ic.PRODUCTO_ID,
-                    p.NOMBRE AS PRODUCTO_NOMBRE,
-                    p.SKU,
-                    ic.CANTIDAD,
-                    ic.PRECIO_UNITARIO,
-                    (ic.CANTIDAD * ic.PRECIO_UNITARIO) AS SUBTOTAL,
-                    c.NOMBRE AS CATEGORIA,
-                    ip.URL AS IMAGEN_URL
+                SELECT ic.ITEM_CARRITO_ID, ic.PRODUCTO_ID, p.NOMBRE, p.SKU, ic.CANTIDAD, ic.PRECIO_UNITARIO,
+                       (ic.CANTIDAD * ic.PRECIO_UNITARIO) AS SUBTOTAL, c.NOMBRE, ip.URL
                 FROM ITEM_CARRITO ic
                 JOIN PRODUCTOS p ON ic.PRODUCTO_ID = p.ID_PRODUCTO
                 LEFT JOIN CATEGORIA c ON p.CATEGORIA_ID = c.CATEGORIA_ID
-                LEFT JOIN (
-                    SELECT PRODUCTO_ID, MIN(URL) AS URL
-                    FROM IMAGENES_PRODUCTOS
-                    GROUP BY PRODUCTO_ID
-                ) ip ON p.ID_PRODUCTO = ip.PRODUCTO_ID
+                LEFT JOIN (SELECT PRODUCTO_ID, MIN(URL) AS URL FROM IMAGENES_PRODUCTOS GROUP BY PRODUCTO_ID) ip 
+                ON p.ID_PRODUCTO = ip.PRODUCTO_ID
                 WHERE ic.CARRITO_ID = v_carrito_id
                 ORDER BY ic.CREADO_EN DESC;
-                
         EXCEPTION
-            WHEN NO_DATA_FOUND THEN
-                -- Retornar cursor vacío
-                OPEN p_items FOR
-                    SELECT NULL AS ITEM_CARRITO_ID FROM DUAL WHERE 1=0;
+            WHEN NO_DATA_FOUND THEN OPEN p_items FOR SELECT NULL FROM DUAL WHERE 1=0;
         END;
     END SP_CARRITO_LEER;
 
-    -- Calcular total del carrito
-    FUNCTION FN_CARRITO_CALCULAR_TOTAL(
-        p_usuario_id IN NUMBER
-    ) RETURN NUMBER
-    AS
+    FUNCTION FN_CARRITO_CALCULAR_TOTAL(p_usuario_id IN NUMBER) RETURN NUMBER AS
         v_total NUMBER := 0;
         v_carrito_id NUMBER;
     BEGIN
-        BEGIN
-            SELECT CARRITO_ID INTO v_carrito_id
-            FROM CARRITO
-            WHERE USUARIO_ID = p_usuario_id;
-            
-            SELECT NVL(SUM(CANTIDAD * PRECIO_UNITARIO), 0)
-            INTO v_total
-            FROM ITEM_CARRITO
-            WHERE CARRITO_ID = v_carrito_id;
-            
-        EXCEPTION
-            WHEN NO_DATA_FOUND THEN
-                v_total := 0;
-        END;
-        
+        SELECT CARRITO_ID INTO v_carrito_id FROM CARRITO WHERE USUARIO_ID = p_usuario_id;
+        SELECT NVL(SUM(CANTIDAD * PRECIO_UNITARIO), 0) INTO v_total FROM ITEM_CARRITO WHERE CARRITO_ID = v_carrito_id;
         RETURN v_total;
+    EXCEPTION WHEN OTHERS THEN RETURN 0;
     END FN_CARRITO_CALCULAR_TOTAL;
 
-    -- Contar items en el carrito
-    FUNCTION FN_CARRITO_CONTAR_ITEMS(
-        p_usuario_id IN NUMBER
-    ) RETURN NUMBER
-    AS
+    FUNCTION FN_CARRITO_CONTAR_ITEMS(p_usuario_id IN NUMBER) RETURN NUMBER AS
         v_count NUMBER := 0;
         v_carrito_id NUMBER;
     BEGIN
-        BEGIN
-            SELECT CARRITO_ID INTO v_carrito_id
-            FROM CARRITO
-            WHERE USUARIO_ID = p_usuario_id;
-            
-            SELECT NVL(SUM(CANTIDAD), 0)
-            INTO v_count
-            FROM ITEM_CARRITO
-            WHERE CARRITO_ID = v_carrito_id;
-            
-        EXCEPTION
-            WHEN NO_DATA_FOUND THEN
-                v_count := 0;
-        END;
-        
+        SELECT CARRITO_ID INTO v_carrito_id FROM CARRITO WHERE USUARIO_ID = p_usuario_id;
+        SELECT NVL(SUM(CANTIDAD), 0) INTO v_count FROM ITEM_CARRITO WHERE CARRITO_ID = v_carrito_id;
         RETURN v_count;
+    EXCEPTION WHEN OTHERS THEN RETURN 0;
     END FN_CARRITO_CONTAR_ITEMS;
 
 END PKG_CARRITO;

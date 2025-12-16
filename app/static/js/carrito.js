@@ -192,6 +192,32 @@ async function actualizarContadorHeader() {
     }
 }
 
+async function cambiarCantidad(productoId, nuevaCantidad) {
+    if (nuevaCantidad < 1) {
+        eliminarProducto(productoId);
+        return;
+    }
+    
+    // Verificar stock antes de actualizar
+    try {
+        const response = await fetch(`/api/producto/${productoId}/stock`);
+        const data = await response.json();
+        
+        if (data.success && data.stock_disponible < nuevaCantidad) {
+            mostrarNotificacion(
+                `Solo hay ${data.stock_disponible} unidades disponibles`, 
+                'warning'
+            );
+            return;
+        }
+    } catch (error) {
+        console.error('Error al verificar stock:', error);
+    }
+    
+    actualizarCantidad(productoId, nuevaCantidad);
+}
+
+
 // ============================================
 // RENDERIZADO
 // ============================================
