@@ -1,4 +1,3 @@
-# app/database/sp/carrito.py - VERSIÓN CON VALIDACIÓN DE STOCK
 from ..conexionDB import get_db_connection
 import oracledb
 import traceback
