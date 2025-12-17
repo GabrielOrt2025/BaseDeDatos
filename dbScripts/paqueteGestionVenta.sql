@@ -342,7 +342,8 @@ CREATE OR REPLACE PACKAGE PKG_VENTAS AS
         p_metodo_pago IN VARCHAR2,
         p_notas IN VARCHAR2,
         p_orden_id OUT NUMBER,
-        p_numero_orden OUT VARCHAR2
+        p_numero_orden OUT VARCHAR2,
+        p_factura_id OUT NUMBER
     );
     
     PROCEDURE SP_ORDEN_ACTUALIZAR_ESTADO(
@@ -425,13 +426,13 @@ CREATE OR REPLACE PACKAGE BODY PKG_VENTAS AS
         p_metodo_pago IN VARCHAR2,
         p_notas IN VARCHAR2,
         p_orden_id OUT NUMBER,
-        p_numero_orden OUT VARCHAR2
+        p_numero_orden OUT VARCHAR2,
+        p_factura_id OUT NUMBER
     )
     AS
         v_carrito_id NUMBER;
         v_subtotal NUMBER := 0;
         v_total NUMBER := 0;
-        v_factura_id NUMBER;
         v_numero_factura VARCHAR2(50);
         v_item_count NUMBER := 0;
     BEGIN
@@ -499,7 +500,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_VENTAS AS
             0,
             'PENDIENTE',
             p_usuario_id
-        ) RETURNING ID_FACTURA INTO v_factura_id;
+        ) RETURNING ID_FACTURA INTO p_factura_id;
         
         -- Registrar salidas de inventario
         FOR item IN (

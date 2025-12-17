@@ -3,3 +3,4 @@ config.py
 __pycache__
 app/__pycache__
 dbScripts/usuarioPermisos.sql
+app/database/sp/__pycache__

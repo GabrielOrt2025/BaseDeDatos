@@ -3,6 +3,7 @@ from .database.sp.pa import *
 from .database.sp.carrito import *
 from .database.sp.ventas import *
 from .database.sp.usuarios import *
+from .database.sp.dashboard import *
 from .auth import (
     login_required, guest_only, login_user, logout_user, 
     get_current_user, is_authenticated, register_user,
@@ -430,10 +431,11 @@ def api_crear_orden():
         data = request.get_json()
         user_id = session.get('user_id')
         
-        sucursal_id = data.get('sucursal_id', 1)  # Sucursal por defecto
+        sucursal_id = data.get('sucursal_id', 1)
         direccion_envio_id = data.get('direccion_envio_id')
         metodo_pago = data.get('metodo_pago', 'EFECTIVO')
         notas = data.get('notas', '')
+        total = data.get('total', '')
         
         if not direccion_envio_id:
             return jsonify({
@@ -441,11 +443,12 @@ def api_crear_orden():
                 'error': 'Debe proporcionar una dirección de envío'
             }), 400
         
-        success, resultado = crearOrdenDesdeCarrito(
+        success, resultado, facturaId = crearOrdenDesdeCarrito(
             user_id, sucursal_id, direccion_envio_id, metodo_pago, notas
         )
         
         if success:
+            procesarPago(factura_id=facturaId, monto=total, metodo_pago=metodo_pago)
             return jsonify({
                 'success': True,
                 'orden_id': resultado['orden_id'],
@@ -492,33 +495,6 @@ def api_obtener_ordenes():
             'success': False,
             'error': str(e)
         }), 500
-
-
-# @bp.route('/api/orden/<int:orden_id>', methods=['GET'])
-# @login_required
-# def api_detalle_orden(orden_id):
-#     try:
-#         success_items, items = obtenerDetalleOrden(orden_id)
-#         success_factura, factura = obtenerFacturaPorOrden(orden_id)
-        
-#         if success_items:
-#             return jsonify({
-#                 'success': True,
-#                 'items': items,
-#                 'factura': factura if success_factura else None
-#             })
-#         else:
-#             return jsonify({
-#                 'success': False,
-#                 'error': 'Error al obtener detalle de orden'
-#             }), 500
-            
-#     except Exception as e:
-#         print(f"Error en api_detalle_orden: {e}")
-#         return jsonify({
-#             'success': False,
-#             'error': str(e)
-#         }), 500
 
 
 @bp.route('/api/orden/<int:orden_id>/estado', methods=['PUT'])
@@ -650,6 +626,7 @@ def api_crear_direccion():
             'error': str(e)
         }), 500
 
+#API pedidos
 @bp.route('/mis-pedidos')
 @login_required
 def mis_pedidos():
@@ -694,9 +671,6 @@ def api_pedidos_alias():
     return api_obtener_mis_pedidos()
 
 
-# ============================================
-# API: DETALLE DE PEDIDO ESPECÍFICO
-# ============================================
 
 @bp.route('/api/orden/<int:orden_id>', methods=['GET'])
 @login_required
@@ -764,6 +738,231 @@ def prueba():
         productos = []
     
     return render_template("prueba.html")
+
+
+#API's ADMIN
+@bp.route('/api/dashboard/resumen', methods=['GET'])
+@admin_required
+def api_dashboard_resumen():
+
+    try:
+        success, resumen = obtenerResumenDashboard()
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'resumen': resumen
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Error al obtener resumen del dashboard'
+            }), 500
+            
+    except Exception as e:
+        print(f"Error en api_dashboard_resumen: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@bp.route('/api/dashboard/ordenes-recientes', methods=['GET'])
+@admin_required
+def api_ordenes_recientes():
+    try:
+        limite = request.args.get('limite', 5, type=int)
+        success, ordenes = obtenerOrdenesRecientes(limite)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'ordenes': ordenes
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Error al obtener órdenes recientes'
+            }), 500
+            
+    except Exception as e:
+        print(f"Error en api_ordenes_recientes: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@bp.route('/api/dashboard/alertas-stock', methods=['GET'])
+@admin_required
+def api_alertas_stock():
+    """
+    Obtiene productos con stock bajo
+    Query params: limite (default: 3)
+    """
+    try:
+        limite = request.args.get('limite', 3, type=int)
+        success, alertas = obtenerAlertasStockBajo(limite)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'alertas': alertas
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Error al obtener alertas de stock'
+            }), 500
+            
+    except Exception as e:
+        print(f"Error en api_alertas_stock: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@bp.route('/api/dashboard/actividades-recientes', methods=['GET'])
+@admin_required
+def api_actividades_recientes():
+    """
+    Obtiene las actividades recientes del sistema
+    Query params: limite (default: 10)
+    """
+    try:
+        limite = request.args.get('limite', 10, type=int)
+        success, actividades = obtenerActividadesRecientes(limite)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'actividades': actividades
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Error al obtener actividades recientes'
+            }), 500
+            
+    except Exception as e:
+        print(f"Error en api_actividades_recientes: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@bp.route('/api/dashboard/ordenes-dia', methods=['GET'])
+@admin_required
+def api_ordenes_dia():
+    """
+    Obtiene el total de órdenes del día
+    Query params: fecha (formato: YYYY-MM-DD, opcional)
+    """
+    try:
+        fecha_str = request.args.get('fecha')
+        fecha = None
+        
+        if fecha_str:
+            from datetime import datetime
+            fecha = datetime.strptime(fecha_str, '%Y-%m-%d')
+        
+        success, resultado = obtenerOrdenesDia(fecha)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'resultado': resultado
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Error al obtener órdenes del día'
+            }), 500
+            
+    except Exception as e:
+        print(f"Error en api_ordenes_dia: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@bp.route('/api/dashboard/ventas-dia', methods=['GET'])
+@admin_required
+def api_ventas_dia():
+    """
+    Obtiene el total de ventas del día
+    Query params: fecha (formato: YYYY-MM-DD, opcional)
+    """
+    try:
+        fecha_str = request.args.get('fecha')
+        fecha = None
+        
+        if fecha_str:
+            from datetime import datetime
+            fecha = datetime.strptime(fecha_str, '%Y-%m-%d')
+        
+        success, resultado = obtenerVentasDia(fecha)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'resultado': resultado
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Error al obtener ventas del día'
+            }), 500
+            
+    except Exception as e:
+        print(f"Error en api_ventas_dia: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@bp.route('/api/dashboard/completo', methods=['GET'])
+@admin_required
+def api_dashboard_completo():
+    """
+    Obtiene todos los datos del dashboard en una sola llamada
+    Para reducir requests desde el frontend
+    """
+    try:
+        # Resumen principal
+        success_resumen, resumen = obtenerResumenDashboard()
+        
+        # Órdenes recientes
+        success_ordenes, ordenes = obtenerOrdenesRecientes(5)
+        
+        # Alertas de stock
+        success_alertas, alertas = obtenerAlertasStockBajo(3)
+        
+        # Actividades recientes
+        success_actividades, actividades = obtenerActividadesRecientes(10)
+        
+        return jsonify({
+            'success': True,
+            'resumen': resumen if success_resumen else {},
+            'ordenes_recientes': ordenes if success_ordenes else [],
+            'alertas_stock': alertas if success_alertas else [],
+            'actividades_recientes': actividades if success_actividades else []
+        })
+        
+    except Exception as e:
+        print(f"Error en api_dashboard_completo: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 
 
