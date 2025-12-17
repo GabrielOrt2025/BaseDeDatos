@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, render_template, request, session, flash, 
 from .database.sp.pa import *
 from .database.sp.carrito import *
 from .database.sp.ventas import *
+from .database.sp.usuarios import *
 from .auth import (
     login_required, guest_only, login_user, logout_user, 
     get_current_user, is_authenticated, register_user,
@@ -493,31 +494,31 @@ def api_obtener_ordenes():
         }), 500
 
 
-@bp.route('/api/orden/<int:orden_id>', methods=['GET'])
-@login_required
-def api_detalle_orden(orden_id):
-    try:
-        success_items, items = obtenerDetalleOrden(orden_id)
-        success_factura, factura = obtenerFacturaPorOrden(orden_id)
+# @bp.route('/api/orden/<int:orden_id>', methods=['GET'])
+# @login_required
+# def api_detalle_orden(orden_id):
+#     try:
+#         success_items, items = obtenerDetalleOrden(orden_id)
+#         success_factura, factura = obtenerFacturaPorOrden(orden_id)
         
-        if success_items:
-            return jsonify({
-                'success': True,
-                'items': items,
-                'factura': factura if success_factura else None
-            })
-        else:
-            return jsonify({
-                'success': False,
-                'error': 'Error al obtener detalle de orden'
-            }), 500
+#         if success_items:
+#             return jsonify({
+#                 'success': True,
+#                 'items': items,
+#                 'factura': factura if success_factura else None
+#             })
+#         else:
+#             return jsonify({
+#                 'success': False,
+#                 'error': 'Error al obtener detalle de orden'
+#             }), 500
             
-    except Exception as e:
-        print(f"Error en api_detalle_orden: {e}")
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+#     except Exception as e:
+#         print(f"Error en api_detalle_orden: {e}")
+#         return jsonify({
+#             'success': False,
+#             'error': str(e)
+#         }), 500
 
 
 @bp.route('/api/orden/<int:orden_id>/estado', methods=['PUT'])
@@ -569,6 +570,185 @@ def api_verificar_stock(producto_id):
             'stock_disponible': 0
         })
 
+# API: Direcciones de usuario
+@bp.route('/api/direcciones', methods=['GET'])
+@login_required
+def api_obtener_direcciones():
+    try:
+        user_id = session.get('user_id')
+        
+        success, direcciones = direccionXusuario(user_id)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'direcciones': direcciones
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Error al obtener direcciones'
+            }), 500
+            
+    except Exception as e:
+        print(f"Error en api_obtener_direcciones: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@bp.route('/api/direcciones/crear', methods=['POST'])
+@login_required
+def api_crear_direccion():
+    try:
+        data = request.get_json()
+        user_id = session.get('user_id')
+        
+        campos_requeridos = ['etiqueta', 'nombre_destinatario', 'linea_1', 
+                           'ciudad', 'provincia', 'pais', 'telefono']
+        
+        for campo in campos_requeridos:
+            if not data.get(campo):
+                return jsonify({
+                    'success': False,
+                    'error': f'El campo {campo} es requerido'
+                }), 400
+        
+        success, direccion_id = crearDireccion(
+            usuarioId=user_id,
+            etiqueta=data.get('etiqueta'),
+            nombreDestinatario=data.get('nombre_destinatario'),
+            linea1=data.get('linea_1'),
+            ciudad=data.get('ciudad'),
+            provincia=data.get('provincia'),
+            codigoPostal=data.get('codigo_postal', ''),
+            pais=data.get('pais'),
+            telefono=data.get('telefono')
+        )
+        print(direccion_id)
+        if success:
+            return jsonify({
+                'success': True,
+                'direccion_id': direccion_id,
+                'mensaje': 'Dirección creada exitosamente'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Error al crear dirección'
+            }), 500
+            
+    except Exception as e:
+        print(f"Error en api_crear_direccion: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@bp.route('/mis-pedidos')
+@login_required
+def mis_pedidos():
+    """Redirige a la sección de pedidos en cuenta"""
+    return redirect(url_for('main.cuenta') + '#pedidos')
+
+
+ 
+@bp.route('/api/mis-pedidos', methods=['GET'])
+@login_required
+def api_obtener_mis_pedidos():
+    """API para obtener todos los pedidos del usuario"""
+    try:
+        user_id = session.get('user_id')
+        success, ordenes = obtenerOrdenesPorUsuario(user_id)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'ordenes': ordenes
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Error al obtener pedidos'
+            }), 500
+            
+    except Exception as e:
+        print(f"Error en api_obtener_mis_pedidos: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@bp.route('/api/pedidos', methods=['GET'])
+@login_required
+def api_pedidos_alias():
+    """Alias para /api/mis-pedidos (compatibilidad)"""
+    return api_obtener_mis_pedidos()
+
+
+# ============================================
+# API: DETALLE DE PEDIDO ESPECÍFICO
+# ============================================
+
+@bp.route('/api/orden/<int:orden_id>', methods=['GET'])
+@login_required
+def api_detalle_orden(orden_id):
+    """
+    Obtener detalle completo de una orden
+    Verifica que la orden pertenezca al usuario actual
+    """
+    try:
+        user_id = session.get('user_id')
+        
+        success_ordenes, ordenes = obtenerOrdenesPorUsuario(user_id)
+        
+        if not success_ordenes:
+            return jsonify({
+                'success': False,
+                'error': 'Error al verificar orden'
+            }), 500
+        
+        orden_valida = any(orden['id_orden'] == orden_id for orden in ordenes)
+        
+        if not orden_valida:
+            return jsonify({
+                'success': False,
+                'error': 'Orden no encontrada o no autorizada'
+            }), 403
+        
+        success_detalle, items = obtenerDetalleOrden(orden_id)
+        success_factura, factura = obtenerFacturaPorOrden(orden_id)
+        
+        if success_detalle:
+            return jsonify({
+                'success': True,
+                'items': items,
+                'factura': factura if success_factura else None
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Error al obtener detalle'
+            }), 500
+            
+    except Exception as e:
+        print(f"Error en api_detalle_orden: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+    
+
 @bp.route("/prueba", methods=['GET', 'POST'])
 def prueba():
     try:
@@ -584,6 +764,7 @@ def prueba():
         productos = []
     
     return render_template("prueba.html")
+
 
 
 @bp.app_context_processor

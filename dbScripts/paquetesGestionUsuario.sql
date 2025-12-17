@@ -181,7 +181,8 @@ CREATE OR REPLACE PACKAGE PKG_GESTION_DIRECCIONES AS
         p_provincia IN VARCHAR2,
         p_codigo_postal IN VARCHAR2,
         p_pais IN VARCHAR2,
-        p_telefono IN VARCHAR2
+        p_telefono IN VARCHAR2,
+        p_direccion_id OUT NUMBER
     );
     
     PROCEDURE SP_DIRECCION_ACTUALIZAR(
@@ -201,7 +202,7 @@ CREATE OR REPLACE PACKAGE PKG_GESTION_DIRECCIONES AS
         P_DIRECCIONES OUT SYS_REFCURSOR
     );
     
-    PROCEDURE SP_DIRECCION_ELIMINAR( -- NUEVO: Necesario para completar el CRUD
+    PROCEDURE SP_DIRECCION_ELIMINAR(
         p_direccion_id IN NUMBER
     );
 
@@ -253,21 +254,41 @@ CREATE OR REPLACE PACKAGE BODY PKG_GESTION_DIRECCIONES AS
         p_provincia IN VARCHAR2,
         p_codigo_postal IN VARCHAR2,
         p_pais IN VARCHAR2,
-        p_telefono IN VARCHAR2
+        p_telefono IN VARCHAR2,
+        p_direccion_id OUT NUMBER
     )
     AS
     BEGIN
         INSERT INTO DIRECCIONES_USUARIO(
-            USUARIO_ID, ETIQUETA, NOMBRE_DESTINATARIO, LINEA_1, CIUDAD, PROVINCIA,
-            CODIGO_POSTAL, PAIS, TELEFONO
-        ) VALUES (
-            p_usuario_id, p_etiqueta, p_nombre_destinatario, p_linea1, p_ciudad, 
-            p_provincia, p_codigo_postal, p_pais, p_telefono
-        );
-        -- Se omite DBMS_OUTPUT para inserciones exitosas
+            USUARIO_ID,
+            ETIQUETA,
+            NOMBRE_DESTINATARIO,
+            LINEA_1,
+            CIUDAD,
+            PROVINCIA,
+            CODIGO_POSTAL,
+            PAIS,
+            TELEFONO
+        )
+        VALUES (
+            p_usuario_id,
+            p_etiqueta,
+            p_nombre_destinatario,
+            p_linea1,
+            p_ciudad,
+            p_provincia,
+            p_codigo_postal,
+            p_pais,
+            p_telefono
+        )
+        RETURNING ID_DIRECCION INTO p_direccion_id;
+
     EXCEPTION
         WHEN OTHERS THEN
-            RAISE_APPLICATION_ERROR(-20001, 'Error al crear la dirección: ' || SQLERRM);
+            RAISE_APPLICATION_ERROR(
+                -20001,
+                'Error al crear la dirección: ' || SQLERRM
+            );
     END SP_DIRECCION_CREAR;
 
     PROCEDURE SP_DIRECCION_LEER_POR_USUARIO(
