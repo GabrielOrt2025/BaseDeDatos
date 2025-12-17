@@ -10,6 +10,7 @@ def crearOrdenDesdeCarrito(usuario_id, sucursal_id, direccion_envio_id, metodo_p
         connection = get_db_connection()
         cursor = connection.cursor()
         
+        facturaIdVar = cursor.var(oracledb.NUMBER)
         orden_id_var = cursor.var(oracledb.NUMBER)
         numero_orden_var = cursor.var(oracledb.STRING)
         
@@ -22,17 +23,19 @@ def crearOrdenDesdeCarrito(usuario_id, sucursal_id, direccion_envio_id, metodo_p
                 metodo_pago,
                 notas,
                 orden_id_var,
-                numero_orden_var
+                numero_orden_var,
+                facturaIdVar
             ]
         )
         
         orden_id = orden_id_var.getvalue()
-        numero_orden = numero_orden_var.getvalue()        
+        numero_orden = numero_orden_var.getvalue()
+        facturaId = facturaIdVar.getvalue()        
         return True, {
             'orden_id': orden_id,
             'numero_orden': numero_orden,
             'mensaje': 'Orden creada exitosamente'
-        }
+        }, facturaId
     except Exception as e:
         print(f"Error en crearOrdenDesdeCarrito: {e}")
         traceback.print_exc()

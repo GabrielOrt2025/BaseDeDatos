@@ -19,7 +19,6 @@
                 Reportes
             </a>
             <button onclick="cargarDatos()" class="btn btn-primary">
-                <i class="bi bi-arrow-clockwise"></i>
                 Actualizar
             </button>
         </div>
@@ -32,11 +31,8 @@
                 <div class="stat-icon purple">
                     <i class="bi bi-cart-check"></i>
                 </div>
-                <span class="stat-trend up">
-                    <i class="bi bi-arrow-up"></i> +12%
-                </span>
             </div>
-            <div class="stat-value" id="stat-ordenes">0</div>
+            <div class="stat-value" id="stat-ordenes"></div>
             <div class="stat-label">Órdenes Hoy</div>
         </div>
 
@@ -45,11 +41,8 @@
                 <div class="stat-icon green">
                     <i class="bi bi-currency-dollar"></i>
                 </div>
-                <span class="stat-trend up">
-                    <i class="bi bi-arrow-up"></i> +8%
-                </span>
             </div>
-            <div class="stat-value" id="stat-ventas">₡0</div>
+            <div class="stat-value" id="stat-ventas"></div>
             <div class="stat-label">Ventas del Día</div>
         </div>
 
@@ -58,11 +51,8 @@
                 <div class="stat-icon orange">
                     <i class="bi bi-people"></i>
                 </div>
-                <span class="stat-trend up">
-                    <i class="bi bi-arrow-up"></i> +5%
-                </span>
             </div>
-            <div class="stat-value" id="stat-usuarios">0</div>
+            <div class="stat-value" id="stat-usuarios"></div>
             <div class="stat-label">Usuarios Activos</div>
         </div>
 
@@ -71,9 +61,6 @@
                 <div class="stat-icon blue">
                     <i class="bi bi-box-seam"></i>
                 </div>
-                <span class="stat-trend down">
-                    <i class="bi bi-arrow-down"></i> -3%
-                </span>
             </div>
             <div class="stat-value" id="stat-productos">0</div>
             <div class="stat-label">Productos Activos</div>
@@ -166,200 +153,7 @@
         </div>
     </div>
 </div>
-
-<script>
-// Formatear precio
-function formatearPrecio(precio) {
-    return new Intl.NumberFormat('es-CR', {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-    }).format(precio);
-}
-
-// Formatear fecha
-function formatearFecha(fecha) {
-    if (!fecha) return 'N/A';
-    try {
-        const date = new Date(fecha);
-        return date.toLocaleDateString('es-CR', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    } catch (e) {
-        return fecha;
-    }
-}
-
-// Cargar estadísticas generales
-async function cargarEstadisticas() {
-    try {
-        // Simular datos - aquí conectarías con tus APIs reales
-        const stats = {
-            ordenes: 24,
-            ventas: 1250000,
-            usuarios: 156,
-            productos: 89
-        };
-        
-        document.getElementById('stat-ordenes').textContent = stats.ordenes;
-        document.getElementById('stat-ventas').textContent = '₡' + formatearPrecio(stats.ventas);
-        document.getElementById('stat-usuarios').textContent = stats.usuarios;
-        document.getElementById('stat-productos').textContent = stats.productos;
-    } catch (error) {
-        console.error('Error al cargar estadísticas:', error);
-    }
-}
-
-// Cargar órdenes recientes
-async function cargarOrdenesRecientes() {
-    const container = document.getElementById('ordenes-container');
-    
-    try {
-        // Aquí conectarías con tu API real
-        // const response = await fetch('/api/admin/ordenes/recientes');
-        // const data = await response.json();
-        
-        // Datos de ejemplo
-        const ordenes = [
-            { numero: 'ORD-20250101-1234', cliente: 'María González', total: 45990, estado: 'completado', fecha: new Date() },
-            { numero: 'ORD-20250101-1235', cliente: 'Juan Pérez', total: 32500, estado: 'pendiente', fecha: new Date() },
-            { numero: 'ORD-20250101-1236', cliente: 'Ana López', total: 67800, estado: 'completado', fecha: new Date() }
-        ];
-        
-        if (ordenes.length === 0) {
-            container.innerHTML = '<div class="empty-state"><i class="bi bi-inbox"></i><p>No hay órdenes recientes</p></div>';
-            return;
-        }
-        
-        container.innerHTML = `
-            <table class="orders-table">
-                <thead>
-                    <tr>
-                        <th>Número</th>
-                        <th>Cliente</th>
-                        <th>Total</th>
-                        <th>Estado</th>
-                        <th>Fecha</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${ordenes.map(orden => `
-                        <tr>
-                            <td><strong>${orden.numero}</strong></td>
-                            <td>${orden.cliente}</td>
-                            <td>₡${formatearPrecio(orden.total)}</td>
-                            <td><span class="badge ${orden.estado}">${orden.estado.charAt(0).toUpperCase() + orden.estado.slice(1)}</span></td>
-                            <td>${formatearFecha(orden.fecha)}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        `;
-    } catch (error) {
-        console.error('Error al cargar órdenes:', error);
-        container.innerHTML = '<div class="empty-state"><i class="bi bi-exclamation-circle"></i><p>Error al cargar órdenes</p></div>';
-    }
-}
-
-// Cargar actividad reciente
-async function cargarActividad() {
-    const container = document.getElementById('activity-feed');
-    
-    try {
-        // Datos de ejemplo
-        const actividades = [
-            { tipo: 'order', titulo: 'Nueva orden recibida', descripcion: 'Orden #ORD-1234 - María González', tiempo: 'Hace 5 min', icono: 'order' },
-            { tipo: 'user', titulo: 'Nuevo usuario registrado', descripcion: 'juan.perez@email.com', tiempo: 'Hace 15 min', icono: 'user' },
-            { tipo: 'product', titulo: 'Stock actualizado', descripcion: 'Pijama Satín - 10 unidades', tiempo: 'Hace 1 hora', icono: 'product' }
-        ];
-        
-        container.innerHTML = actividades.map(act => `
-            <div class="activity-item">
-                <div class="activity-icon ${act.icono}">
-                    <i class="bi bi-${act.icono === 'order' ? 'cart-check' : act.icono === 'user' ? 'person' : 'box'}"></i>
-                </div>
-                <div class="activity-content">
-                    <h4>${act.titulo}</h4>
-                    <p>${act.descripcion}</p>
-                    <div class="activity-time">${act.tiempo}</div>
-                </div>
-            </div>
-        `).join('');
-    } catch (error) {
-        console.error('Error al cargar actividad:', error);
-        container.innerHTML = '<div class="empty-state"><i class="bi bi-exclamation-circle"></i><p>Error al cargar actividad</p></div>';
-    }
-}
-
-// Cargar alertas de stock
-async function cargarAlertasStock() {
-    const container = document.getElementById('stock-alerts-container');
-    
-    try {
-        // Datos de ejemplo
-        const alertas = [
-            { producto: 'Pijama Satín Rosa', stock: 3, minimo: 10, categoria: 'Mujer' },
-            { producto: 'Gorro de Dormir Negro', stock: 5, minimo: 15, categoria: 'Gorros' }
-        ];
-        
-        if (alertas.length === 0) {
-            container.innerHTML = '<div class="empty-state"><i class="bi bi-check-circle"></i><p>No hay alertas de stock</p></div>';
-            return;
-        }
-        
-        container.innerHTML = `
-            <table class="orders-table">
-                <thead>
-                    <tr>
-                        <th>Producto</th>
-                        <th>Categoría</th>
-                        <th>Stock Actual</th>
-                        <th>Mínimo Requerido</th>
-                        <th>Acción</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${alertas.map(alerta => `
-                        <tr>
-                            <td><strong>${alerta.producto}</strong></td>
-                            <td>${alerta.categoria}</td>
-                            <td><span style="color: var(--danger); font-weight: 600;">${alerta.stock} unidades</span></td>
-                            <td>${alerta.minimo} unidades</td>
-                            <td>
-                                <button class="btn btn-primary" style="padding: 6px 12px; font-size: 0.85rem;">
-                                    <i class="bi bi-plus-circle"></i> Reponer
-                                </button>
-                            </td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        `;
-    } catch (error) {
-        console.error('Error al cargar alertas:', error);
-        container.innerHTML = '<div class="empty-state"><i class="bi bi-exclamation-circle"></i><p>Error al cargar alertas</p></div>';
-    }
-}
-
-// Función principal para cargar todos los datos
-async function cargarDatos() {
-    await Promise.all([
-        cargarEstadisticas(),
-        cargarOrdenesRecientes(),
-        cargarActividad(),
-        cargarAlertasStock()
-    ]);
-}
-
-// Cargar datos al iniciar
-document.addEventListener('DOMContentLoaded', () => {
-    cargarDatos();
-    
-    // Actualizar automáticamente cada 5 minutos
-    setInterval(cargarDatos, 300000);
-});
-</script>
+{% block customJS %}
+<script src="{{ url_for('static', filename='js/adminApis.js') }}"></script>
+{% endblock %}
 {% endblock %}
