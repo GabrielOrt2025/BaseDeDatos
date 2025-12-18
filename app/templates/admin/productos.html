@@ -1,0 +1,426 @@
+{% extends "layout/base.html" %}
+{% block title %}Gestión de Productos | Empijamadas{% endblock %}
+
+{% block customCSS %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/productos.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <!-- Header -->
+    <div class="admin-header">
+        <div>
+            <h1>
+                <i class="bi bi-box-seam"></i>
+                Gestión de Productos
+            </h1>
+            <p class="header-subtitle">Administra el catálogo de productos y precios</p>
+        </div>
+        <div class="header-actions">
+            <button onclick="exportarProductos()" class="btn btn-secondary">
+                <i class="bi bi-download"></i>
+                Exportar
+            </button>
+            <button onclick="mostrarModalCrearProducto()" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i>
+                Nuevo Producto
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon purple">
+                <i class="bi bi-box"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value" id="total-productos">0</div>
+                <div class="stat-label">Total Productos</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon green">
+                <i class="bi bi-check-circle"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value" id="productos-activos">0</div>
+                <div class="stat-label">Productos Activos</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon orange">
+                <i class="bi bi-tags"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value" id="total-categorias">0</div>
+                <div class="stat-label">Categorías</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon blue">
+                <i class="bi bi-graph-up"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value" id="valor-inventario">₡0</div>
+                <div class="stat-label">Valor Inventario</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters and Search -->
+    <div class="card filters-card">
+        <div class="filters-row">
+            <div class="search-box">
+                <i class="bi bi-search"></i>
+                <input type="text" id="search-input" placeholder="Buscar por nombre o SKU...">
+            </div>
+            
+            <div class="filter-group">
+                <label>
+                    <i class="bi bi-funnel"></i>
+                    Categoría:
+                </label>
+                <select id="filter-categoria">
+                    <option value="">Todas las categorías</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>
+                    <i class="bi bi-filter-circle"></i>
+                    Estado:
+                </label>
+                <select id="filter-estado">
+                    <option value="">Todos</option>
+                    <option value="1">Activos</option>
+                    <option value="0">Inactivos</option>
+                </select>
+            </div>
+
+            <button onclick="limpiarFiltros()" class="btn btn-secondary btn-sm">
+                <i class="bi bi-x-circle"></i>
+                Limpiar
+            </button>
+        </div>
+    </div>
+
+    <!-- Products Grid -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">
+                <i class="bi bi-grid"></i>
+                Catálogo de Productos
+            </h2>
+            <div class="view-options">
+                <button onclick="cambiarVista('tarjetas')" class="toggle-btn active" data-view="tarjetas">
+                    <i class="bi bi-grid-3x3-gap"></i>
+                </button>
+                <button onclick="cambiarVista('tabla')" class="toggle-btn" data-view="tabla">
+                    <i class="bi bi-table"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Card View -->
+        <div id="card-view">
+            <div class="products-grid" id="products-grid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Cargando productos...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table View -->
+        <div id="table-view" style="display: none;">
+            <div class="table-responsive">
+                <table class="products-table">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>SKU</th>
+                            <th>Categoría</th>
+                            <th>Precio Base</th>
+                            <th>Stock</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="products-tbody">
+                        <tr>
+                            <td colspan="7">
+                                <div class="loading">
+                                    <div class="spinner"></div>
+                                    <p>Cargando productos...</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-container">
+            <div class="pagination-info">
+                Mostrando <span id="showing-from">0</span> - <span id="showing-to">0</span> de <span id="total-items">0</span> productos
+            </div>
+            <div class="pagination" id="pagination"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Crear Producto -->
+<div id="modal-crear-producto" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>
+                <i class="bi bi-plus-circle"></i>
+                Crear Producto
+            </h2>
+            <button class="close-btn" onclick="cerrarModal('modal-crear-producto')">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+        <form id="form-crear-producto" onsubmit="crearProducto(event)">
+            <div class="form-group">
+                <label>Nombre del Producto *</label>
+                <input type="text" id="nuevo-nombre" required placeholder="Pijama de algodón">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>SKU *</label>
+                    <input type="text" id="nuevo-sku" required placeholder="PIJ-001">
+                </div>
+                <div class="form-group">
+                    <label>Categoría *</label>
+                    <select id="nuevo-categoria" required>
+                        <option value="">Seleccionar...</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Descripción</label>
+                <textarea id="nuevo-descripcion" rows="3" placeholder="Descripción del producto..."></textarea>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Precio Base *</label>
+                    <div class="input-with-prefix">
+                        <span class="prefix">₡</span>
+                        <input type="number" id="nuevo-precio" step="0.01" min="0" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Estado</label>
+                    <select id="nuevo-activo">
+                        <option value="1">Activo</option>
+                        <option value="0">Inactivo</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Imágenes del Producto</label>
+                <div class="image-upload-area" onclick="document.getElementById('nuevo-imagenes').click()">
+                    <i class="bi bi-cloud-upload"></i>
+                    <p>Haz clic para subir imágenes</p>
+                    <small>PNG, JPG hasta 5MB</small>
+                </div>
+                <input type="file" id="nuevo-imagenes" multiple accept="image/*" style="display: none;" onchange="previsualizarImagenes(event)">
+                <div id="preview-imagenes" class="image-preview"></div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="cerrarModal('modal-crear-producto')">
+                    Cancelar
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle"></i>
+                    Crear Producto
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Editar Producto -->
+<div id="modal-editar-producto" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>
+                <i class="bi bi-pencil-square"></i>
+                Editar Producto
+            </h2>
+            <button class="close-btn" onclick="cerrarModal('modal-editar-producto')">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+        <form id="form-editar-producto" onsubmit="actualizarProducto(event)">
+            <input type="hidden" id="edit-producto-id">
+            
+            <div class="form-group">
+                <label>Nombre del Producto *</label>
+                <input type="text" id="edit-nombre" required>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>SKU *</label>
+                    <input type="text" id="edit-sku" required>
+                </div>
+                <div class="form-group">
+                    <label>Categoría *</label>
+                    <select id="edit-categoria" required>
+                        <option value="">Seleccionar...</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Descripción</label>
+                <textarea id="edit-descripcion" rows="3"></textarea>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Precio Base *</label>
+                    <div class="input-with-prefix">
+                        <span class="prefix">₡</span>
+                        <input type="number" id="edit-precio" step="0.01" min="0" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Estado</label>
+                    <select id="edit-activo">
+                        <option value="1">Activo</option>
+                        <option value="0">Inactivo</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="cerrarModal('modal-editar-producto')">
+                    Cancelar
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle"></i>
+                    Actualizar Producto
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Ver Detalles -->
+<div id="modal-detalles-producto" class="modal">
+    <div class="modal-content modal-large">
+        <div class="modal-header">
+            <h2>
+                <i class="bi bi-info-circle"></i>
+                Detalles del Producto
+            </h2>
+            <button class="close-btn" onclick="cerrarModal('modal-detalles-producto')">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="product-detail-grid">
+                <div class="product-images">
+                    <div class="main-image">
+                        <img id="detalle-imagen-principal" src="" alt="Producto">
+                    </div>
+                    <div class="thumbnail-images" id="detalle-thumbnails">
+                        <!-- Thumbnails will be added here -->
+                    </div>
+                </div>
+                
+                <div class="product-info">
+                    <h3 id="detalle-nombre"></h3>
+                    <p class="sku-badge">SKU: <strong id="detalle-sku"></strong></p>
+                    
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Categoría:</label>
+                            <span id="detalle-categoria"></span>
+                        </div>
+                        <div class="info-item">
+                            <label>Precio Base:</label>
+                            <span id="detalle-precio" class="price"></span>
+                        </div>
+                        <div class="info-item">
+                            <label>Stock Disponible:</label>
+                            <span id="detalle-stock"></span>
+                        </div>
+                        <div class="info-item">
+                            <label>Estado:</label>
+                            <span id="detalle-estado" class="badge"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="description-section">
+                        <h4>Descripción</h4>
+                        <p id="detalle-descripcion"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="cerrarModal('modal-detalles-producto')">
+                Cerrar
+            </button>
+            <button class="btn btn-primary" onclick="editarProductoDesdeDetalle()">
+                <i class="bi bi-pencil"></i>
+                Editar Producto
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Gestionar Categorías -->
+<div id="modal-categorias" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>
+                <i class="bi bi-tags"></i>
+                Gestionar Categorías
+            </h2>
+            <button class="close-btn" onclick="cerrarModal('modal-categorias')">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="add-category-form">
+                <h4>Agregar Nueva Categoría</h4>
+                <form onsubmit="agregarCategoria(event)">
+                    <div class="form-row">
+                        <input type="text" id="nueva-categoria-nombre" placeholder="Nombre" required>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-plus"></i>
+                            Agregar
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="categories-list" id="categorias-lista">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Cargando categorías...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block customJS %}
+<script src="{{ url_for('static', filename='js/admin/productos.js') }}"></script>
+{% endblock %}
+{% endblock %}

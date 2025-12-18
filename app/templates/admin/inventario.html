@@ -1,0 +1,323 @@
+{% extends "layout/base.html" %}
+{% block title %}Gestión de Inventario | Empijamadas{% endblock %}
+
+{% block customCSS %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/inventario.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <!-- Header -->
+    <div class="admin-header">
+        <div>
+            <h1>
+                <i class="bi bi-box-seam"></i>
+                Gestión de Inventario
+            </h1>
+            <p class="header-subtitle">Administra el stock de productos en todas las bodegas</p>
+        </div>
+        <div class="header-actions">
+            <button onclick="exportarInventario()" class="btn btn-secondary">
+                <i class="bi bi-download"></i>
+                Exportar
+            </button>
+            <button onclick="mostrarModalAgregarStock()" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i>
+                Agregar Stock
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon purple">
+                <i class="bi bi-boxes"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value" id="total-productos">0</div>
+                <div class="stat-label">Productos Totales</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon green">
+                <i class="bi bi-check-circle"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value" id="stock-disponible">0</div>
+                <div class="stat-label">Stock Disponible</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon orange">
+                <i class="bi bi-exclamation-triangle"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value" id="alertas-stock">0</div>
+                <div class="stat-label">Alertas de Stock</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon blue">
+                <i class="bi bi-clock-history"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value" id="stock-reservado">0</div>
+                <div class="stat-label">Stock Reservado</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters and Search -->
+    <div class="card filters-card">
+        <div class="filters-row">
+            <div class="search-box">
+                <i class="bi bi-search"></i>
+                <input type="text" id="search-input" placeholder="Buscar productos por nombre o SKU...">
+            </div>
+            
+            <div class="filter-group">
+                <label>
+                    <i class="bi bi-funnel"></i>
+                    Categoría:
+                </label>
+                <select id="filter-categoria">
+                    <option value="">Todas las categorías</option>
+                    <option value="1">Mujer</option>
+                    <option value="2">Hombre</option>
+                    <option value="3">Gorros</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>
+                    <i class="bi bi-building"></i>
+                    Bodega:
+                </label>
+                <select id="filter-bodega">
+                    <option value="">Todas las bodegas</option>
+                    <option value="1">Bodega Principal</option>
+                    <option value="2">Bodega Secundaria</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>
+                    <i class="bi bi-filter-circle"></i>
+                    Estado:
+                </label>
+                <select id="filter-estado">
+                    <option value="">Todos</option>
+                    <option value="disponible">Disponible</option>
+                    <option value="bajo">Stock Bajo</option>
+                    <option value="agotado">Agotado</option>
+                </select>
+            </div>
+
+            <button onclick="limpiarFiltros()" class="btn btn-secondary btn-sm">
+                <i class="bi bi-x-circle"></i>
+                Limpiar
+            </button>
+        </div>
+    </div>
+
+    <!-- Inventory Table -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">
+                <i class="bi bi-table"></i>
+                Inventario de Productos
+            </h2>
+            <div class="view-toggle">
+                <button onclick="cambiarVista('tabla')" class="toggle-btn active" data-view="tabla">
+                    <i class="bi bi-table"></i>
+                </button>
+                <button onclick="cambiarVista('tarjetas')" class="toggle-btn" data-view="tarjetas">
+                    <i class="bi bi-grid-3x3-gap"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Table View -->
+        <div id="table-view">
+            <div class="table-responsive">
+                <table class="inventory-table">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>SKU</th>
+                            <th>Categoría</th>
+                            <th>Bodega</th>
+                            <th>Disponible</th>
+                            <th>Reservado</th>
+                            <th>Alerta</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventory-tbody">
+                        <tr>
+                            <td colspan="9">
+                                <div class="loading">
+                                    <div class="spinner"></div>
+                                    <p>Cargando inventario...</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Card View (Hidden by default) -->
+        <div id="card-view" style="display: none;">
+            <div class="products-grid" id="products-grid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Cargando inventario...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-container">
+            <div class="pagination-info">
+                Mostrando <span id="showing-from">0</span> - <span id="showing-to">0</span> de <span id="total-items">0</span> productos
+            </div>
+            <div class="pagination" id="pagination">
+                <!-- Pagination buttons will be generated here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Agregar Stock -->
+<div id="modal-agregar-stock" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>
+                <i class="bi bi-plus-circle"></i>
+                Agregar Stock
+            </h2>
+            <button class="close-btn" onclick="cerrarModal('modal-agregar-stock')">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+        <form id="form-agregar-stock" onsubmit="agregarStock(event)">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Producto *</label>
+                    <select id="stock-producto" required>
+                        <option value="">Seleccionar producto...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Bodega *</label>
+                    <select id="stock-bodega" required>
+                        <option value="">Seleccionar bodega...</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Cantidad *</label>
+                    <input type="number" id="stock-cantidad" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label>Precio Unitario *</label>
+                    <input type="number" id="stock-precio" step="0.01" min="0" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Tipo de Entrada *</label>
+                <select id="stock-tipo" required>
+                    <option value="1">Compra</option>
+                    <option value="2">Devolución</option>
+                    <option value="3">Ajuste</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Referencia</label>
+                <input type="text" id="stock-referencia" placeholder="Ej: Orden de compra #123">
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="cerrarModal('modal-agregar-stock')">
+                    Cancelar
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle"></i>
+                    Agregar Stock
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Editar Stock -->
+<div id="modal-editar-stock" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>
+                <i class="bi bi-pencil-square"></i>
+                Editar Stock
+            </h2>
+            <button class="close-btn" onclick="cerrarModal('modal-editar-stock')">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+        <form id="form-editar-stock" onsubmit="actualizarStock(event)">
+            <input type="hidden" id="edit-producto-id">
+            <input type="hidden" id="edit-bodega-id">
+
+            <div class="info-box">
+                <div class="info-item">
+                    <strong>Producto:</strong>
+                    <span id="edit-producto-nombre"></span>
+                </div>
+                <div class="info-item">
+                    <strong>SKU:</strong>
+                    <span id="edit-producto-sku"></span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Cantidad Disponible *</label>
+                    <input type="number" id="edit-cantidad-disponible" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label>Cantidad Reservada</label>
+                    <input type="number" id="edit-cantidad-reservada" min="0" readonly>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Nivel de Alerta *</label>
+                <input type="number" id="edit-cantidad-alerta" min="0" required>
+                <small>Se enviará notificación cuando el stock llegue a este nivel</small>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="cerrarModal('modal-editar-stock')">
+                    Cancelar
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle"></i>
+                    Actualizar Stock
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% block customJS %}
+<script src="{{ url_for('static', filename='js/admin/inventario.js') }}"></script>
+{% endblock %}
+{% endblock %}

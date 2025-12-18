@@ -1,0 +1,399 @@
+{% extends "layout/base.html" %}
+{% block title %}Gestión de Usuarios | Empijamadas{% endblock %}
+
+{% block customCSS %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/usuarios.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <!-- Header -->
+    <div class="admin-header">
+        <div>
+            <h1>
+                <i class="bi bi-people-fill"></i>
+                Gestión de Usuarios
+            </h1>
+            <p class="header-subtitle">Administra los usuarios del sistema y sus permisos</p>
+        </div>
+        <div class="header-actions">
+            <button onclick="exportarUsuarios()" class="btn btn-secondary">
+                <i class="bi bi-download"></i>
+                Exportar
+            </button>
+            <button onclick="mostrarModalCrearUsuario()" class="btn btn-primary">
+                <i class="bi bi-person-plus"></i>
+                Nuevo Usuario
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon purple">
+                <i class="bi bi-people"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value" id="total-usuarios">0</div>
+                <div class="stat-label">Total Usuarios</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon green">
+                <i class="bi bi-person-check"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value" id="usuarios-activos">0</div>
+                <div class="stat-label">Usuarios Activos</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon orange">
+                <i class="bi bi-person-badge"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value" id="usuarios-admins">0</div>
+                <div class="stat-label">Administradores</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon blue">
+                <i class="bi bi-person-plus-fill"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value" id="nuevos-mes">0</div>
+                <div class="stat-label">Nuevos Este Mes</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters and Search -->
+    <div class="card filters-card">
+        <div class="filters-row">
+            <div class="search-box">
+                <i class="bi bi-search"></i>
+                <input type="text" id="search-input" placeholder="Buscar por nombre o email...">
+            </div>
+            
+            <div class="filter-group">
+                <label>
+                    <i class="bi bi-filter-circle"></i>
+                    Estado:
+                </label>
+                <select id="filter-estado">
+                    <option value="">Todos</option>
+                    <option value="1">Activos</option>
+                    <option value="0">Inactivos</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>
+                    <i class="bi bi-shield"></i>
+                    Rol:
+                </label>
+                <select id="filter-rol">
+                    <option value="">Todos los roles</option>
+                </select>
+            </div>
+
+            <button onclick="limpiarFiltros()" class="btn btn-secondary btn-sm">
+                <i class="bi bi-x-circle"></i>
+                Limpiar
+            </button>
+        </div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">
+                <i class="bi bi-table"></i>
+                Lista de Usuarios
+            </h2>
+            <div class="view-options">
+                <button onclick="cambiarVista('tabla')" class="toggle-btn active" data-view="tabla">
+                    <i class="bi bi-table"></i>
+                </button>
+                <button onclick="cambiarVista('tarjetas')" class="toggle-btn" data-view="tarjetas">
+                    <i class="bi bi-grid-3x3-gap"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Table View -->
+        <div id="table-view">
+            <div class="table-responsive">
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Email</th>
+                            <th>Roles</th>
+                            <th>Fecha Registro</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usuarios-tbody">
+                        <tr>
+                            <td colspan="7">
+                                <div class="loading">
+                                    <div class="spinner"></div>
+                                    <p>Cargando usuarios...</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Card View -->
+        <div id="card-view" style="display: none;">
+            <div class="users-grid" id="users-grid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Cargando usuarios...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-container">
+            <div class="pagination-info">
+                Mostrando <span id="showing-from">0</span> - <span id="showing-to">0</span> de <span id="total-items">0</span> usuarios
+            </div>
+            <div class="pagination" id="pagination"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Crear Usuario -->
+<div id="modal-crear-usuario" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>
+                <i class="bi bi-person-plus"></i>
+                Crear Usuario
+            </h2>
+            <button class="close-btn" onclick="cerrarModal('modal-crear-usuario')">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+        <form id="form-crear-usuario" onsubmit="crearUsuario(event)">
+            <div class="form-group">
+                <label>Nombre Completo *</label>
+                <input type="text" id="nuevo-nombre" required placeholder="Juan Pérez">
+            </div>
+
+            <div class="form-group">
+                <label>Email *</label>
+                <input type="email" id="nuevo-email" required placeholder="juan@example.com">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Contraseña *</label>
+                    <input type="password" id="nuevo-password" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label>Confirmar Contraseña *</label>
+                    <input type="password" id="nuevo-password-confirm" required minlength="6">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Asignar Roles (Opcional)</label>
+                <div class="roles-checkboxes" id="roles-nuevo-usuario">
+                    <!-- Roles will be populated here -->
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="cerrarModal('modal-crear-usuario')">
+                    Cancelar
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle"></i>
+                    Crear Usuario
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Editar Usuario -->
+<div id="modal-editar-usuario" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>
+                <i class="bi bi-pencil-square"></i>
+                Editar Usuario
+            </h2>
+            <button class="close-btn" onclick="cerrarModal('modal-editar-usuario')">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+        <form id="form-editar-usuario" onsubmit="actualizarUsuario(event)">
+            <input type="hidden" id="edit-usuario-id">
+            
+            <div class="form-group">
+                <label>Nombre Completo *</label>
+                <input type="text" id="edit-nombre" required>
+            </div>
+
+            <div class="form-group">
+                <label>Email *</label>
+                <input type="email" id="edit-email" required>
+            </div>
+
+            <div class="form-group">
+                <label>Nueva Contraseña (dejar en blanco para no cambiar)</label>
+                <input type="password" id="edit-password" minlength="6">
+            </div>
+
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="edit-activo">
+                    Usuario Activo
+                </label>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="cerrarModal('modal-editar-usuario')">
+                    Cancelar
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle"></i>
+                    Actualizar Usuario
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Detalles de Usuario -->
+<div id="modal-detalles-usuario" class="modal">
+    <div class="modal-content modal-large">
+        <div class="modal-header">
+            <h2>
+                <i class="bi bi-person-badge"></i>
+                Detalles del Usuario
+            </h2>
+            <button class="close-btn" onclick="cerrarModal('modal-detalles-usuario')">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <!-- User Info -->
+            <div class="user-detail-card">
+                <div class="user-avatar-large">
+                    <i class="bi bi-person-circle"></i>
+                </div>
+                <div class="user-detail-info">
+                    <h3 id="detalle-nombre"></h3>
+                    <p id="detalle-email"></p>
+                    <div class="user-meta">
+                        <span class="badge" id="detalle-estado"></span>
+                        <span class="meta-item">
+                            <i class="bi bi-calendar"></i>
+                            Registro: <strong id="detalle-fecha"></strong>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="cambiarTab('roles')">
+                    <i class="bi bi-shield-check"></i>
+                    Roles
+                </button>
+                <button class="tab-btn" onclick="cambiarTab('direcciones')">
+                    <i class="bi bi-geo-alt"></i>
+                    Direcciones
+                </button>
+                <button class="tab-btn" onclick="cambiarTab('ordenes')">
+                    <i class="bi bi-bag"></i>
+                    Órdenes
+                </button>
+            </div>
+
+            <!-- Tab Content: Roles -->
+            <div id="tab-roles" class="tab-content active">
+                <div id="detalle-roles-lista">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Cargando roles...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content: Direcciones -->
+            <div id="tab-direcciones" class="tab-content" style="display: none;">
+                <div id="detalle-direcciones-lista">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Cargando direcciones...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content: Órdenes -->
+            <div id="tab-ordenes" class="tab-content" style="display: none;">
+                <div id="detalle-ordenes-lista">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Cargando órdenes...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="cerrarModal('modal-detalles-usuario')">
+                Cerrar
+            </button>
+            <button class="btn btn-primary" onclick="editarUsuarioDesdeDetalle()">
+                <i class="bi bi-pencil"></i>
+                Editar Usuario
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Confirmar Cambio de Estado -->
+<div id="modal-confirmar-estado" class="modal">
+    <div class="modal-content modal-small">
+        <div class="modal-header">
+            <h2>
+                <i class="bi bi-exclamation-triangle"></i>
+                Confirmar Acción
+            </h2>
+            <button class="close-btn" onclick="cerrarModal('modal-confirmar-estado')">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p id="confirmar-mensaje"></p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="cerrarModal('modal-confirmar-estado')">
+                Cancelar
+            </button>
+            <button type="button" class="btn btn-danger" onclick="confirmarCambioEstado()">
+                <i class="bi bi-check-circle"></i>
+                Confirmar
+            </button>
+        </div>
+    </div>
+</div>
+
+{% block customJS %}
+<script src="{{ url_for('static', filename='js/admin/usuarios.js') }}"></script>
+{% endblock %}
+{% endblock %}

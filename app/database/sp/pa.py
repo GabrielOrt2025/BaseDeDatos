@@ -10,7 +10,7 @@ def obtenerProductos():
     try:
         connection = get_db_connection()
         cursor = connection.cursor()
-        ref_cursor = cursor.var(oracledb.CURSOR)
+        ref_cursor = connection.cursor()
         cursor.callproc("ANDREY_GABO_CHAMO_JOSE.PKG_PRODUCTO.LEER_TODOS", [ref_cursor])
         productos = []
         for r in ref_cursor:
@@ -336,7 +336,7 @@ def obtenerUsuarios():
                 'email': r[1],
                 'nombre': r[2],
                 'activo': r[3],
-                'fecha_creacion': r[4]
+                'fecha_creacion' : r[4]
             }
             usuarios.append(usuario)
         print(f"Se obtuvieron {len(usuarios)} usuarios")
@@ -541,6 +541,125 @@ def obtenerContraUsuario(email):
         except Exception as e:
             print(f"Error cerrando connection: {e}")
 
+
+def obtenerUsuarioXId(idUsuario):
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        ref_cursor = connection.cursor()
+
+        cursor.callproc("ANDREY_GABO_CHAMO_JOSE.PKG_GESTION_USUARIOS.SP_USUARIO_LEER_POR_ID", [idUsuario, ref_cursor])
+
+        usuario = []
+        for r in ref_cursor:
+            usuario.append({
+                'id' : r[0],
+                'email' : r[1],
+                'nombre' : r[2],
+                'activo' : r[3],
+                'creado' : r[4]
+            })
+        return True, usuario
+    except Exception as e:
+        print(f"❌ Error en obtenerUsuarioXid: {e}")
+        import traceback
+        traceback.print_exc()
+        print(f"{'='*80}\n")
+        return False, []
+    finally:
+        try:
+            if ref_cursor is not None:
+                ref_cursor.close()
+        except Exception as e:
+            print(f"Error cerrando ref_cursor: {e}")
+
+        try:
+            if cursor is not None:
+                cursor.close()
+        except Exception as e:
+            print(f"Error cerrando cursor: {e}")
+
+        try:
+            if connection is not None:
+                connection.close()
+        except Exception as e:
+            print(f"Error cerrando connection: {e}")
+
+            
+def cambiarEstadoUsuario(usuario_id, nuevo_estado):
+    connection = None
+    cursor = None
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        
+        cursor.callproc("ANDREY_GABO_CHAMO_JOSE.PKG_GESTION_USUARIOS.SP_ACTIVIDAD_USUARIO", [usuario_id, nuevo_estado])
+        
+        connection.commit()
+        return True, "Estado actualizado correctamente"
+    except Exception as e:
+        print(f"❌ Error en cambiarEstadoUsuario: {e}")
+        return False, str(e)
+    finally:
+        if cursor: cursor.close()
+        if connection: connection.close()
+
+
+# En pa.py
+
+def obtenerDetallesInventario():
+    connection = None
+    cursor = None
+    ref_cursor = None
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        ref_cursor = connection.cursor()
+        
+        # Usando el procedimiento real de tu archivo SQL
+        cursor.callproc("ANDREY_GABO_CHAMO_JOSE.PKG_REPORTES_STOCK.SP_OBTENER_PRODUCTOS_DETALLE", [ref_cursor])
+        
+        productos = []
+        for r in ref_cursor:
+            productos.append({
+                'id': r[0],
+                'nombre': r[1],
+                'categoria': r[2],
+                'imagenes': r[3].split('; ') if r[3] else [],
+                'precio': float(r[4]) if r[4] else 0,
+                'stock': r[5]
+            })
+        return True, productos
+    except Exception as e:
+        print(f"❌ Error en obtenerDetallesInventario: {e}")
+        return False, []
+    finally:
+        if ref_cursor: ref_cursor.close()
+        if cursor: cursor.close()
+        if connection: connection.close()
+
+def obtenerBodegas():
+    connection = None
+    cursor = None
+    ref_cursor = None
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        ref_cursor = connection.cursor()
+        
+        # Nota: Si no tienes este SP, te adjunto el SQL abajo para crearlo
+        cursor.callproc("ANDREY_GABO_CHAMO_JOSE.PKG_BODEGA.LEER_TODAS", [ref_cursor])
+        
+        bodegas = []
+        for r in ref_cursor:
+            bodegas.append({'id': r[0], 'nombre': r[1]})
+        return True, bodegas
+    except Exception as e:
+        return False, []
+    finally:
+        if ref_cursor: ref_cursor.close()
+        if cursor: cursor.close()
+        if connection: connection.close()
 
 def obtenerNombreUsuario(usuario_id):
 
