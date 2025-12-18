@@ -136,7 +136,7 @@ function renderizarTabla(usuarios) {
                         : '<span style="color: #9ca3af;">Sin roles</span>'}
                 </div>
             </td>
-            <td>${formatearFecha(usuario.creado)}</td>
+            <td>${formatearFecha(usuario.fecha_creacion)}</td>
             <td>
                 <span class="badge ${usuario.activo === 1 ? 'activo' : 'inactivo'}">
                     ${usuario.activo === 1 ? 'Activo' : 'Inactivo'}
