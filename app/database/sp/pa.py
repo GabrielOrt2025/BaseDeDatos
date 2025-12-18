@@ -20,7 +20,8 @@ def obtenerProductos():
                 'nombre' : r[2],
                 'descripcion' : r[3],
                 'categoria_id': r[4],
-                'activo' : r[5]
+                'precio' : r[5],
+                'activo' : r[6]
             }
             productos.append(producto)
         return True, productos
@@ -368,33 +369,30 @@ def obtenerDetallesProducto():
 
         cursor = connection.cursor()
 
-        cursor_var = connection.cursor().var(oracledb.CURSOR)
+        ref_cursor = connection.cursor()
 
         cursor.callproc(
             "ANDREY_GABO_CHAMO_JOSE.PKG_REPORTES_STOCK.SP_OBTENER_PRODUCTOS_DETALLE",
-            [cursor_var]
+            [ref_cursor]
         )
-
-        result_cursor = cursor_var.getvalue()
-        rows = result_cursor.fetchall()
-
         productos = []
-        for r in rows:
-            productos.append({
+        for r in ref_cursor:
+            producto = {
                 'id': r[0],
                 'nombre_producto': r[1],
                 'nombre_categoria': r[2],
                 'urls_imagenes': r[3],
                 'precio_base': r[4],
                 'stock_disponible': r[5] if len(r) > 5 else 0
-            })
-        return productos
+            }
+            productos.append(producto)
+        return True, productos
 
     except Exception as e:
         print(f"Error en obtenerDetallesProducto: {e}")
         import traceback
         traceback.print_exc()
-        return []
+        return False, []
 
     finally:
         try:
