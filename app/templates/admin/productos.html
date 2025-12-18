@@ -2,6 +2,7 @@
 {% block title %}Gestión de Productos | Empijamadas{% endblock %}
 
 {% block customCSS %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/inventario.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/productos.css') }}">
 {% endblock %}
 
@@ -423,4 +424,5 @@
 {% block customJS %}
 <script src="{{ url_for('static', filename='js/admin/productos.js') }}"></script>
 {% endblock %}
+
 {% endblock %}

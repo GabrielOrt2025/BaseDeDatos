@@ -1052,14 +1052,9 @@ def api_actualizar_stock():
 @bp.route('/api/productos', methods=['GET'])
 @admin_required
 def api_productos_lista():
-    """
-    Obtiene lista simplificada de productos para selects
-    """
     try:
-        from .database.sp.pa import obtenerProductos
         
-        success, productos = obtenerProductos()
-        
+        success, productos = obtenerDetallesProducto()
         if success:
             return jsonify({
                 'success': True,

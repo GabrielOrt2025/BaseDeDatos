@@ -1,13 +1,10 @@
-// static/js/admin/usuarios.js
+// static/js/admin/usuarios.js - CORREGIDO
 
 let usuariosData = [];
 let filteredData = [];
 let currentPage = 1;
 const itemsPerPage = 10;
 let usuarioActual = null;
-let accionPendiente = null;
-let usuarioIdPendiente = null;
-let nuevoEstadoPendiente = null;
 
 document.addEventListener('DOMContentLoaded', function() {
     cargarUsuarios();
@@ -25,6 +22,7 @@ async function cargarUsuarios() {
             usuariosData = data.usuarios || [];
             filteredData = [...usuariosData];
             renderizarUsuarios();
+            actualizarEstadisticas();
         } else {
             mostrarError('Error al cargar usuarios');
         }
@@ -34,22 +32,24 @@ async function cargarUsuarios() {
     }
 }
 
+// Preparar cambio de estado
 function prepararCambioEstado(id, nombre, estadoActual) {
-    usuarioIdPendiente = id;
-    nuevoEstadoPendiente = estadoActual === 1 ? 0 : 1; // Invierte el estado
+    const nuevoEstado = estadoActual === 1 ? 0 : 1;
+    const accion = nuevoEstado === 1 ? 'activar' : 'desactivar';
     
-    const accion = nuevoEstadoPendiente === 1 ? 'activar' : 'desactivar';
-    const mensaje = `¿Estás seguro de que deseas <strong>${accion}</strong> al usuario <strong>${nombre}</strong>?`;
+    document.getElementById('confirmar-mensaje').innerHTML = 
+        `¿Estás seguro de que deseas <strong>${accion}</strong> al usuario <strong>${nombre}</strong>?`;
     
-    document.getElementById('confirmar-mensaje').innerHTML = mensaje;
-    abrirModal('modal-confirmar-estado'); // Asegúrate de tener esta función definida
+    // Guardar en variables globales para usar en confirmarCambioEstado
+    window.usuarioIdPendiente = id;
+    window.nuevoEstadoPendiente = nuevoEstado;
+    
+    document.getElementById('modal-confirmar-estado').classList.add('active');
 }
 
-/**
- * Ejecuta la llamada a la API tras la confirmación del usuario.
- */
+// Confirmar cambio de estado
 async function confirmarCambioEstado() {
-    if (usuarioIdPendiente === null) return;
+    if (window.usuarioIdPendiente === null || window.usuarioIdPendiente === undefined) return;
 
     try {
         const response = await fetch('/api/usuarios/cambiar-estado', {
@@ -58,8 +58,8 @@ async function confirmarCambioEstado() {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                usuario_id: usuarioIdPendiente,
-                activo: nuevoEstadoPendiente === 1
+                usuarioId: window.usuarioIdPendiente,
+                activo: window.nuevoEstadoPendiente === 1
             })
         });
 
@@ -67,9 +67,7 @@ async function confirmarCambioEstado() {
 
         if (data.success) {
             cerrarModal('modal-confirmar-estado');
-            mostrarExito('El estado del usuario ha sido actualizado.'); // Opcional: Función de notificación
-            cargarUsuarios(); // Recarga la tabla o lista de usuarios
-            actualizarEstadisticas(); // Refresca los contadores del dashboard
+            cargarUsuarios();
         } else {
             mostrarError(data.error || 'Error al actualizar el estado');
         }
@@ -77,8 +75,8 @@ async function confirmarCambioEstado() {
         console.error('Error:', error);
         mostrarError('Error de conexión con el servidor');
     } finally {
-        usuarioIdPendiente = null;
-        nuevoEstadoPendiente = null;
+        window.usuarioIdPendiente = null;
+        window.nuevoEstadoPendiente = null;
     }
 }
 
@@ -105,7 +103,7 @@ function renderizarTabla(usuarios) {
     if (usuarios.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="7">
+                <td colspan="6">
                     <div class="empty-state">
                         <i class="bi bi-people"></i>
                         <p>No se encontraron usuarios</p>
@@ -150,7 +148,6 @@ function renderizarTabla(usuarios) {
                     <button class="btn-icon edit" onclick="mostrarModalEditarUsuario(${usuario.id})" title="Editar">
                         <i class="bi bi-pencil"></i>
                     </button>
-                    
                     <button class="btn-icon toggle" 
                             onclick="prepararCambioEstado(${usuario.id}, '${usuario.nombre}', ${usuario.activo})" 
                             title="${usuario.activo === 1 ? 'Desactivar' : 'Activar'}">
@@ -182,17 +179,13 @@ function renderizarTarjetas(usuarios) {
             </div>
             <h3>${usuario.nombre}</h3>
             <p class="email">${usuario.email}</p>
-            <span class="badge ${usuario.activo ? 'activo' : 'inactivo'}">
-                ${usuario.activo ? 'Activo' : 'Inactivo'}
+            <span class="badge ${usuario.activo === 1 ? 'activo' : 'inactivo'}">
+                ${usuario.activo === 1 ? 'Activo' : 'Inactivo'}
             </span>
             <div class="user-card-info">
                 <div class="info-item">
                     <span class="label">Roles</span>
                     <span class="value">${usuario.roles ? usuario.roles.length : 0}</span>
-                </div>
-                <div class="info-item">
-                    <span class="label">Direcciones</span>
-                    <span class="value">${usuario.direcciones_count || 0}</span>
                 </div>
             </div>
             <div class="user-card-actions">
@@ -203,6 +196,62 @@ function renderizarTarjetas(usuarios) {
             </div>
         </div>
     `).join('');
+}
+
+// Ver detalles de usuario
+async function verDetallesUsuario(usuarioId) {
+    try {
+        const response = await fetch(`/api/usuarios/${usuarioId}/detalles`);
+        const data = await response.json();
+        
+        if (data.success) {
+            const usuario = data.usuario;
+            usuarioActual = usuario;
+            
+            document.getElementById('detalle-nombre').textContent = usuario.nombre;
+            document.getElementById('detalle-email').textContent = usuario.email;
+            document.getElementById('detalle-fecha').textContent = formatearFecha(usuario.creado);
+            document.getElementById('detalle-estado').textContent = usuario.activo === 1 ? 'Activo' : 'Inactivo';
+            document.getElementById('detalle-estado').className = `badge ${usuario.activo === 1 ? 'activo' : 'inactivo'}`;
+            
+            // Cargar roles
+            cargarRolesTab(usuario.roles || []);
+            
+            document.getElementById('modal-detalles-usuario').classList.add('active');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarError('Error al cargar detalles');
+    }
+}
+
+function cargarRolesTab(roles) {
+    const container = document.getElementById('detalle-roles-lista');
+    
+    if (roles.length === 0) {
+        container.innerHTML = `
+            <div class="info-message">
+                <i class="bi bi-info-circle"></i>
+                Este usuario no tiene roles asignados
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = roles.map(rol => `
+        <div class="role-chip">
+            <i class="bi bi-shield-check"></i>
+            <span>${rol}</span>
+        </div>
+    `).join('');
+}
+
+function cambiarTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
+    
+    event.target.classList.add('active');
+    document.getElementById(`tab-${tab}`).style.display = 'block';
 }
 
 // Filtros
@@ -218,7 +267,7 @@ function aplicarFiltros() {
     filteredData = usuariosData.filter(usuario => {
         const matchSearch = usuario.nombre.toLowerCase().includes(searchTerm) || 
                           usuario.email.toLowerCase().includes(searchTerm);
-        const matchEstado = !estado || usuario.activo == estado;
+        const matchEstado = estado === '' || usuario.activo == estado;
         const matchRol = !rol || (usuario.roles && usuario.roles.includes(rol));
         
         return matchSearch && matchEstado && matchRol;
@@ -255,253 +304,6 @@ function cambiarVista(vista) {
     renderizarUsuarios();
 }
 
-// Modales
-function mostrarModalCrearUsuario() {
-    document.getElementById('form-crear-usuario').reset();
-    cargarRolesCheckboxes('roles-nuevo-usuario');
-    document.getElementById('modal-crear-usuario').classList.add('active');
-}
-
-function mostrarModalEditarUsuario(usuarioId) {
-    const usuario = usuariosData.find(u => u.id === usuarioId);
-    if (!usuario) return;
-    
-    document.getElementById('edit-usuario-id').value = usuario.id;
-    document.getElementById('edit-email').value = usuario.nombre;
-    document.getElementById('edit-nombre').value = usuario.email;
-    document.getElementById('edit-password').value = '';
-    document.getElementById('edit-activo').checked = usuario.activo;
-    
-    document.getElementById('modal-editar-usuario').classList.add('active');
-}
-
-async function verDetallesUsuario(usuarioId) {
-    try {
-        const response = await fetch(`/api/usuarios/${usuarioId}/detalles`);
-        const data = await response.json();
-        
-        if (data.success) {
-            const usuario = data.usuario;
-            usuarioActual = usuario;
-            
-            document.getElementById('detalle-nombre').textContent = usuario.nombre;
-            document.getElementById('detalle-email').textContent = usuario.email;
-            document.getElementById('detalle-fecha').textContent = formatearFecha(usuario.creado);
-            document.getElementById('detalle-estado').textContent = usuario.activo ? 'Activo' : 'Inactivo';
-            document.getElementById('detalle-estado').className = `badge ${usuario.activo ? 'activo' : 'inactivo'}`;
-            
-            // Cargar roles
-            cargarRolesTab(usuario.roles || []);
-            
-            // Cargar direcciones
-            cargarDireccionesTab(usuario.direcciones || []);
-            
-            // Cargar órdenes
-            cargarOrdenesTab(usuario.ordenes || []);
-            
-            document.getElementById('modal-detalles-usuario').classList.add('active');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        mostrarError('Error al cargar detalles');
-    }
-}
-
-function cargarRolesTab(roles) {
-    const container = document.getElementById('detalle-roles-lista');
-    
-    if (roles.length === 0) {
-        container.innerHTML = `
-            <div class="info-message">
-                <i class="bi bi-info-circle"></i>
-                Este usuario no tiene roles asignados
-            </div>
-        `;
-        return;
-    }
-    
-    container.innerHTML = roles.map(rol => `
-        <div class="role-chip">
-            <i class="bi bi-shield-check"></i>
-            <span>${rol}</span>
-        </div>
-    `).join('');
-}
-
-function cargarDireccionesTab(direcciones) {
-    const container = document.getElementById('detalle-direcciones-lista');
-    
-    if (direcciones.length === 0) {
-        container.innerHTML = `
-            <div class="info-message">
-                <i class="bi bi-info-circle"></i>
-                No hay direcciones registradas
-            </div>
-        `;
-        return;
-    }
-    
-    container.innerHTML = direcciones.map(dir => `
-        <div class="direccion-item">
-            <h5>${dir.etiqueta}</h5>
-            <p>${dir.linea_1}, ${dir.ciudad}, ${dir.provincia}</p>
-            <small>${dir.telefono}</small>
-        </div>
-    `).join('');
-}
-
-function cargarOrdenesTab(ordenes) {
-    const container = document.getElementById('detalle-ordenes-lista');
-    
-    if (ordenes.length === 0) {
-        container.innerHTML = `
-            <div class="info-message">
-                <i class="bi bi-info-circle"></i>
-                No hay órdenes registradas
-            </div>
-        `;
-        return;
-    }
-    
-    container.innerHTML = ordenes.map(orden => `
-        <div class="orden-item">
-            <div>
-                <strong>${orden.numero_orden}</strong>
-                <span class="badge ${orden.estado.toLowerCase()}">${orden.estado}</span>
-            </div>
-            <p>₡${formatearNumero(orden.total)} - ${formatearFecha(orden.fecha)}</p>
-        </div>
-    `).join('');
-}
-
-function cambiarTab(tab) {
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
-    
-    event.target.classList.add('active');
-    document.getElementById(`tab-${tab}`).style.display = 'block';
-}
-
-// CRUD Operations
-async function crearUsuario(event) {
-    event.preventDefault();
-    
-    const password = document.getElementById('nuevo-password').value;
-    const confirmPassword = document.getElementById('nuevo-password-confirm').value;
-    
-    if (password !== confirmPassword) {
-        mostrarError('Las contraseñas no coinciden');
-        return;
-    }
-    
-    const data = {
-        nombre: document.getElementById('nuevo-nombre').value,
-        email: document.getElementById('nuevo-email').value,
-        password: password,
-        roles: obtenerRolesSeleccionados('roles-nuevo-usuario')
-    };
-    
-    try {
-        const response = await fetch('/api/usuarios/crear', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            mostrarExito('Usuario creado correctamente');
-            cerrarModal('modal-crear-usuario');
-            cargarUsuarios();
-        } else {
-            mostrarError(result.error || 'Error al crear usuario');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        mostrarError('Error de conexión');
-    }
-}
-
-async function actualizarUsuario(event) {
-    event.preventDefault();
-    
-    const data = {
-        usuario_id: document.getElementById('edit-usuario-id').value,
-        nombre: document.getElementById('edit-nombre').value,
-        email: document.getElementById('edit-email').value,
-        password: document.getElementById('edit-password').value || null,
-        activo: document.getElementById('edit-activo').checked ? 1 : 0
-    };
-    
-    try {
-        const response = await fetch('/api/usuarios/actualizar', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            mostrarExito('Usuario actualizado correctamente');
-            cerrarModal('modal-editar-usuario');
-            cargarUsuarios();
-        } else {
-            mostrarError(result.error || 'Error al actualizar usuario');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        mostrarError('Error de conexión');
-    }
-}
-
-function confirmarCambioEstadoUsuario(usuarioId, nuevoEstado) {
-    const usuario = usuariosData.find(u => u.id === usuarioId);
-    
-    if (!usuario) {
-        console.error("Usuario no encontrado en los datos locales");
-        return;
-    }
-    accionPendiente = { 
-        usuario_id: usuarioId, 
-        activo: nuevoEstado
-    };
-    
-    const accion = nuevoEstado ? 'activar' : 'desactivar';
-    
-    document.getElementById('confirmar-mensaje').innerHTML = 
-        `¿Estás seguro de que deseas <strong>${accion}</strong> al usuario "<strong>${usuario.nombre}</strong>"?`;
-    
-    document.getElementById('modal-confirmar-estado').classList.add('active');
-}
-
-async function confirmarCambioEstado() {
-    if (!accionPendiente) return;
-    
-    try {
-        const response = await fetch('/api/usuarios/cambiar-estado', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(accionPendiente)
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            mostrarExito('Estado actualizado correctamente');
-            cerrarModal('modal-confirmar-estado');
-            cargarUsuarios();
-            accionPendiente = null;
-        } else {
-            mostrarError(result.error || 'Error al cambiar estado');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        mostrarError('Error de conexión');
-    }
-}
-
 // Helpers
 async function cargarRoles() {
     try {
@@ -516,24 +318,6 @@ async function cargarRoles() {
     } catch (error) {
         console.error('Error:', error);
     }
-}
-
-function cargarRolesCheckboxes(containerId) {
-    // Implementar carga de roles en checkboxes
-}
-
-function obtenerRolesSeleccionados(containerId) {
-    const checkboxes = document.querySelectorAll(`#${containerId} input:checked`);
-    return Array.from(checkboxes).map(cb => cb.value);
-}
-
-function editarUsuarioDesdeDetalle() {
-    cerrarModal('modal-detalles-usuario');
-    mostrarModalEditarUsuario(usuarioActual.id);
-}
-
-function cerrarModal(modalId) {
-    document.getElementById(modalId).classList.remove('active');
 }
 
 function actualizarPaginacion() {
@@ -580,19 +364,19 @@ function cambiarPagina(page) {
 }
 
 async function actualizarEstadisticas() {
-    try {
-        const response = await fetch('/api/usuarios/estadisticas');
-        const data = await response.json();
-        
-        if (data.success) {
-            document.getElementById('total-usuarios').textContent = data.total || 0;
-            document.getElementById('usuarios-activos').textContent = data.activos || 0;
-            document.getElementById('usuarios-admins').textContent = data.admins || 0;
-            document.getElementById('nuevos-mes').textContent = data.nuevos_mes || 0;
-        }
-    } catch (error) {
-        console.error('Error:', error);
-    }
+    const totalUsuarios = usuariosData.length;
+    const usuariosActivos = usuariosData.filter(u => u.activo === 1).length;
+    const administradores = usuariosData.filter(u => 
+        u.roles && u.roles.includes('Administrador')).length;
+    
+    document.getElementById('total-usuarios').textContent = totalUsuarios;
+    document.getElementById('usuarios-activos').textContent = usuariosActivos;
+    document.getElementById('usuarios-admins').textContent = administradores;
+    document.getElementById('nuevos-mes').textContent = '0'; // Implementar según necesidad
+}
+
+function cerrarModal(modalId) {
+    document.getElementById(modalId).classList.remove('active');
 }
 
 function formatearFecha(fecha) {
@@ -607,6 +391,7 @@ function formatearNumero(num) {
 
 function exportarUsuarios() {
     console.log('Exportar usuarios');
+    mostrarExito('Función de exportación en desarrollo');
 }
 
 function mostrarExito(mensaje) {
@@ -614,5 +399,22 @@ function mostrarExito(mensaje) {
 }
 
 function mostrarError(mensaje) {
-    alert(mensaje);
+    alert('Error: ' + mensaje);
+}
+
+function mostrarModalEditarUsuario(usuarioId) {
+    // Implementación básica
+    mostrarExito('Función de edición en desarrollo');
+}
+
+function mostrarModalCrearUsuario() {
+    // Implementación básica
+    mostrarExito('Función de creación en desarrollo');
+}
+
+function editarUsuarioDesdeDetalle() {
+    cerrarModal('modal-detalles-usuario');
+    if (usuarioActual) {
+        mostrarModalEditarUsuario(usuarioActual.id);
+    }
 }
