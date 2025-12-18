@@ -186,6 +186,26 @@ def cuenta():
 def admin_dashboard():
     return render_template("admin/dashboard.html")
 
+@bp.route("/admin/usuarios")
+@admin_required
+def gestionUsuarios():
+    return render_template("admin/usuarios.html")
+
+@bp.route("/admin/productos")
+@admin_required
+def gestionProductos():
+    return render_template("admin/productos.html")
+
+
+@bp.route("/admin/roles")
+@admin_required
+def gestionRoles():
+    return render_template("admin/roles.html")
+
+@bp.route("/admin/inventario")
+@admin_required
+def verInventario():
+    return render_template("admin/inventario.html")
 
 #API
 @bp.route('/api/obtenerDatos', methods=['GET'])
@@ -959,6 +979,514 @@ def api_dashboard_completo():
         print(f"Error en api_dashboard_completo: {e}")
         import traceback
         traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+    
+
+@bp.route('/api/inventario/productos', methods=['GET'])
+@admin_required
+def api_inventario_productos():
+    success, productos = obtenerDetallesInventario()
+    return jsonify({
+        'success': success,
+        'productos': productos
+    })
+
+
+@bp.route('/api/inventario/agregar-stock', methods=['POST'])
+@admin_required
+def api_agregar_stock():
+    try:
+        data = request.get_json()
+        producto_id = data.get('producto_id')
+        bodega_id = data.get('bodega_id')
+        cantidad = data.get('cantidad')
+
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        
+        cursor.callproc("ANDREY_GABO_CHAMO_JOSE.PKG_ENTRADAS.CREAR", 
+                        [producto_id, bodega_id, cantidad, session.get('user_id')])
+        connection.commit()
+        
+        return jsonify({'success': True, 'mensaje': 'Stock registrado mediante entrada'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@bp.route('/api/inventario/actualizar-stock', methods=['PUT'])
+@admin_required
+def api_actualizar_stock():
+    """
+    Actualiza información de stock de un producto
+    """
+    try:
+        from .database.sp.pa import PKG_STOCK  # Necesitarás importar esto
+        
+        data = request.get_json()
+        
+        producto_id = data.get('producto_id')
+        bodega_id = data.get('bodega_id')
+        cantidad_disponible = data.get('cantidad_disponible')
+        cantidad_reservada = data.get('cantidad_reservada')
+        cantidad_alerta = data.get('cantidad_alerta')
+        
+        # Aquí llamarías a tus procedimientos almacenados
+        # Por ejemplo: PKG_STOCK.ACTUALIZAR_CANT(...)
+        
+        return jsonify({
+            'success': True,
+            'mensaje': 'Stock actualizado correctamente'
+        })
+        
+    except Exception as e:
+        print(f"Error en api_actualizar_stock: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@bp.route('/api/productos', methods=['GET'])
+@admin_required
+def api_productos_lista():
+    """
+    Obtiene lista simplificada de productos para selects
+    """
+    try:
+        from .database.sp.pa import obtenerProductos
+        
+        success, productos = obtenerProductos()
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'productos': productos
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Error al obtener productos'
+            }), 500
+            
+    except Exception as e:
+        print(f"Error en api_productos_lista: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@bp.route('/api/bodegas', methods=['GET'])
+@admin_required
+def api_bodegas_lista():
+    success, bodegas = obtenerBodegas()
+    return jsonify({
+        'success': success,
+        'bodegas': bodegas
+    })
+
+
+# ============================================
+# API: ROLES Y PERMISOS
+# ============================================
+
+@bp.route('/api/roles', methods=['GET'])
+@admin_required
+def api_obtener_roles():
+    """
+    Obtiene todos los roles del sistema
+    """
+    try:
+        # Aquí deberías tener un procedimiento para obtener roles
+        # Por ejemplo desde tu paquete PKG_GESTION_ROLES
+        
+        # Datos de ejemplo (reemplazar con llamada a BD)
+        roles = [
+            {
+                'id': 1,
+                'nombre': 'Administrador',
+                'descripcion': 'Acceso completo al sistema',
+                'usuarios_asignados': 3,
+                'fecha_creacion': '2024-01-15'
+            },
+            {
+                'id': 2,
+                'nombre': 'Gerente',
+                'descripcion': 'Gestión de productos y ventas',
+                'usuarios_asignados': 5,
+                'fecha_creacion': '2024-02-20'
+            }
+        ]
+        
+        return jsonify({
+            'success': True,
+            'roles': roles
+        })
+        
+    except Exception as e:
+        print(f"Error en api_obtener_roles: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@bp.route('/api/roles/crear', methods=['POST'])
+@admin_required
+def api_crear_rol():
+    """
+    Crea un nuevo rol
+    """
+    try:
+        data = request.get_json()
+        
+        nombre = data.get('nombre')
+        descripcion = data.get('descripcion')
+        permisos = data.get('permisos', [])
+        
+        # Aquí llamarías a tu procedimiento almacenado para crear rol
+        
+        return jsonify({
+            'success': True,
+            'mensaje': 'Rol creado correctamente'
+        })
+        
+    except Exception as e:
+        print(f"Error en api_crear_rol: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@bp.route('/api/roles/actualizar', methods=['POST'])
+@admin_required
+def api_actualizar_rol():
+    """
+    Actualiza un rol existente
+    """
+    try:
+        data = request.get_json()
+        
+        rol_id = data.get('id')
+        nombre = data.get('nombre')
+        descripcion = data.get('descripcion')
+        permisos = data.get('permisos', [])
+        
+        # Aquí llamarías a tu procedimiento almacenado
+        
+        return jsonify({
+            'success': True,
+            'mensaje': 'Rol actualizado correctamente'
+        })
+        
+    except Exception as e:
+        print(f"Error en api_actualizar_rol: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@bp.route('/api/roles/<int:rol_id>', methods=['DELETE'])
+@admin_required
+def api_eliminar_rol(rol_id):
+    """
+    Elimina un rol
+    """
+    try:
+        # Aquí llamarías a tu procedimiento almacenado
+        
+        return jsonify({
+            'success': True,
+            'mensaje': 'Rol eliminado correctamente'
+        })
+        
+    except Exception as e:
+        print(f"Error en api_eliminar_rol: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@bp.route('/api/usuarios', methods=['GET'])
+@admin_required
+def api_usuarios_lista():
+    """
+    Obtiene lista de usuarios
+    """
+    try:
+        from .database.sp.pa import obtenerUsuarios
+        
+        success, usuarios = obtenerUsuarios()
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'usuarios': usuarios
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Error al obtener usuarios'
+            }), 500
+            
+    except Exception as e:
+        print(f"Error en api_usuarios_lista: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@bp.route('/api/usuarios-con-roles', methods=['GET'])
+@admin_required
+def api_usuarios_con_roles():
+    try:
+        
+        success, usuarios = obtenerUsuarios()
+        
+        if not success:
+            return jsonify({
+                'success': False,
+                'error': 'Error al obtener usuarios'
+            }), 500
+        
+        # Obtener roles para cada usuario
+        for usuario in usuarios:
+            success_roles, roles = obtenerRolesUsuarios(usuario['id'])
+            usuario['roles'] = roles if success_roles else []
+        
+        return jsonify({
+            'success': True,
+            'usuarios': usuarios
+        })
+        
+    except Exception as e:
+        print(f"Error en api_usuarios_con_roles: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@bp.route('/api/usuarios/<int:usuario_id>/roles', methods=['GET'])
+@admin_required
+def api_roles_usuario(usuario_id):
+    """
+    Obtiene los roles asignados a un usuario
+    """
+    try:
+        
+        success, roles = obtenerRolesUsuarios(usuario_id)
+        
+        if success:
+            # Convertir lista de nombres a objetos con más info
+            roles_detalle = [{'id': i+1, 'nombre': rol} for i, rol in enumerate(roles)]
+            
+            return jsonify({
+                'success': True,
+                'roles': roles_detalle
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Error al obtener roles del usuario'
+            }), 500
+            
+    except Exception as e:
+        print(f"Error en api_roles_usuario: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@bp.route('/api/usuarios/<int:usuario_id>/detalles', methods=['GET'])
+@admin_required
+def api_detalles_usuario(usuario_id):
+    try:
+        print(type(usuario_id))
+        success_user, resultado = obtenerUsuarioXId(idUsuario=usuario_id)
+        print(resultado)
+        usuario = resultado[0] if isinstance(resultado, list) and len(resultado) > 0 else resultado
+        print(usuario)
+        if not success_user or not usuario:
+            return jsonify({
+                'success': False,
+                'error': 'Usuario no encontrado'
+            }), 404
+        
+        success_roles, roles = obtenerRolesUsuarios(usuario_id)
+        print(roles)
+        usuario['roles'] = roles if success_roles else []
+        
+        return jsonify({
+            'success': True,
+            'usuario': usuario
+        })
+        
+    except Exception as e:
+        print(f"Error crítico en api_detalles_usuario: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Error interno del servidor'
+        }), 500
+
+
+@bp.route('/api/usuarios/cambiar-estado', methods=['POST'])
+@admin_required
+def api_cambiar_estado_usuario():
+    try:
+        data = request.get_json()
+        usuario_id = data.get('usuarioId')
+        # Convertimos a int para asegurar que sea 0 o 1 según el CONSTRAINT chk_usuarios_activo
+        nuevo_estado = 1 if data.get('activo') else 0 
+
+        if usuario_id is None:
+            return jsonify({
+                'success': False,
+                'error': 'ID de usuario no proporcionado'
+            }), 400
+
+        success, message = cambiarEstadoUsuario(usuario_id, nuevo_estado)
+
+        if success:
+            return jsonify({
+                'success': True,
+                'mensaje': message
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': message
+            }), 500
+
+    except Exception as e:
+        print(f"Error en api_cambiar_estado_usuario: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@bp.route('/api/roles/asignar', methods=['POST'])
+@admin_required
+def api_asignar_rol():
+    """
+    Asigna un rol a un usuario
+    """
+    try:
+        from .database.sp.pa import asignarRolUsuario
+        
+        data = request.get_json()
+        user_id = session.get('user_id')  # Usuario que asigna
+        
+        usuario_id = data.get('usuario_id')
+        rol_id = data.get('rol_id')
+        
+        if not usuario_id or not rol_id:
+            return jsonify({
+                'success': False,
+                'error': 'Datos incompletos'
+            }), 400
+        
+        success = asignarRolUsuario(usuario_id, rol_id, user_id)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'mensaje': 'Rol asignado correctamente'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Error al asignar rol'
+            }), 500
+            
+    except Exception as e:
+        print(f"Error en api_asignar_rol: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@bp.route('/api/roles/revocar', methods=['POST'])
+@admin_required
+def api_revocar_rol():
+    """
+    Revoca un rol de un usuario
+    """
+    try:
+        from .database.sp.pa import revocarRolUsuario
+        
+        data = request.get_json()
+        user_id = session.get('user_id')  # Usuario que revoca
+        
+        usuario_id = data.get('usuarioId')
+        rol_id = data.get('rolId')
+        
+        if not usuario_id or not rol_id:
+            return jsonify({
+                'success': False,
+                'error': 'Datos incompletos'
+            }), 400
+        
+        success = revocarRolUsuario(usuario_id, rol_id, user_id)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'mensaje': 'Rol revocado correctamente'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Error al revocar rol'
+            }), 500
+            
+    except Exception as e:
+        print(f"Error en api_revocar_rol: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@bp.route('/api/roles/estadisticas', methods=['GET'])
+@admin_required
+def api_roles_estadisticas():
+    """
+    Obtiene estadísticas de roles
+    """
+    try:
+        # Aquí calcularías las estadísticas reales
+        # Por ahora datos de ejemplo
+        
+        estadisticas = {
+            'total_roles': 5,
+            'usuarios_con_roles': 15,
+            'administradores': 3,
+            'cambios_hoy': 2
+        }
+        
+        return jsonify({
+            'success': True,
+            **estadisticas
+        })
+        
+    except Exception as e:
+        print(f"Error en api_roles_estadisticas: {e}")
         return jsonify({
             'success': False,
             'error': str(e)

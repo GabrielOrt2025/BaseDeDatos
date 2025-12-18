@@ -22,6 +22,10 @@ AS
     PROCEDURE SP_OBTENER_USUARIOS (
         P_USUARIOS OUT SYS_REFCURSOR
     );
+    PROCEDURE SP_USUARIO_LEER_POR_ID (
+        P_USUARIO_ID IN NUMBER,
+        P_USUARIO_CURSOR OUT SYS_REFCURSOR
+    );
     FUNCTION FN_EMAIL_DISPONIBLE (
         P_EMAIL IN VARCHAR2,
         P_USUARIO_ID OUT NUMBER
@@ -34,6 +38,28 @@ END PKG_GESTION_USUARIOS;
 /
 CREATE OR REPLACE PACKAGE BODY PKG_GESTION_USUARIOS
 AS
+    PROCEDURE SP_USUARIO_LEER_POR_ID (
+        P_USUARIO_ID IN NUMBER,
+        P_USUARIO_CURSOR OUT SYS_REFCURSOR
+    )
+    AS
+    BEGIN
+        OPEN P_USUARIO_CURSOR FOR
+            SELECT 
+                USUARIO_ID, 
+                EMAIL, 
+                NOMBRE, 
+                ACTIVO, 
+                CREADO_EN, 
+                ACTUALIZADO_EN
+            FROM USUARIOS
+            WHERE USUARIO_ID = P_USUARIO_ID;
+
+    EXCEPTION
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('Error al obtener el usuario: ' || SQLERRM);
+    END SP_USUARIO_LEER_POR_ID;
+    
     FUNCTION FN_EMAIL_DISPONIBLE (
         P_EMAIL IN VARCHAR2,
         P_USUARIO_ID OUT NUMBER
@@ -161,7 +187,8 @@ AS
             USUARIO_ID, 
             NOMBRE, 
             EMAIL, 
-            ACTIVO
+            ACTIVO,
+            CREADO_EN
         FROM
             USUARIOS;
     EXCEPTION

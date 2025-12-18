@@ -1,0 +1,350 @@
+{% extends "layout/base.html" %}
+{% block title %}Gestión de Roles | Empijamadas{% endblock %}
+
+{% block customCSS %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/roles.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <!-- Header -->
+    <div class="admin-header">
+        <div>
+            <h1>
+                <i class="bi bi-shield-check"></i>
+                Gestión de Roles y Permisos
+            </h1>
+            <p class="header-subtitle">Administra roles de usuarios y controla el acceso al sistema</p>
+        </div>
+        <div class="header-actions">
+            <button onclick="mostrarModalCrearRol()" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i>
+                Crear Rol
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon purple">
+                <i class="bi bi-shield-fill-check"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value" id="total-roles">0</div>
+                <div class="stat-label">Roles Activos</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon green">
+                <i class="bi bi-people-fill"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value" id="total-usuarios-roles">0</div>
+                <div class="stat-label">Usuarios con Roles</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon orange">
+                <i class="bi bi-person-badge"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value" id="total-admins">0</div>
+                <div class="stat-label">Administradores</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon blue">
+                <i class="bi bi-clock-history"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value" id="cambios-recientes">0</div>
+                <div class="stat-label">Cambios Hoy</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="roles-grid">
+        <!-- Roles List -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="bi bi-list-check"></i>
+                    Roles del Sistema
+                </h2>
+            </div>
+            
+            <div id="roles-container">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Cargando roles...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Assignment -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="bi bi-person-gear"></i>
+                    Asignar Roles a Usuario
+                </h2>
+            </div>
+
+            <form id="form-asignar-rol" onsubmit="asignarRol(event)">
+                <div class="form-group">
+                    <label>
+                        <i class="bi bi-person"></i>
+                        Seleccionar Usuario
+                    </label>
+                    <select id="select-usuario" required onchange="cargarRolesUsuario()">
+                        <option value="">Seleccionar usuario...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <i class="bi bi-shield"></i>
+                        Seleccionar Rol
+                    </label>
+                    <select id="select-rol" required>
+                        <option value="">Seleccionar rol...</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">
+                    <i class="bi bi-check-circle"></i>
+                    Asignar Rol
+                </button>
+            </form>
+
+            <!-- Current User Roles -->
+            <div class="user-roles-section">
+                <h3>
+                    <i class="bi bi-person-lines-fill"></i>
+                    Roles Asignados
+                </h3>
+                <div id="roles-usuario-actual">
+                    <div class="info-message">
+                        <i class="bi bi-info-circle"></i>
+                        Selecciona un usuario para ver sus roles
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Users with Roles Table -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">
+                <i class="bi bi-people"></i>
+                Usuarios y Roles Asignados
+            </h2>
+            <div class="header-actions">
+                <div class="search-box-small">
+                    <i class="bi bi-search"></i>
+                    <input type="text" id="search-usuarios" placeholder="Buscar usuario...">
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Email</th>
+                        <th>Roles Asignados</th>
+                        <th>Fecha Registro</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="usuarios-tbody">
+                    <tr>
+                        <td colspan="6">
+                            <div class="loading">
+                                <div class="spinner"></div>
+                                <p>Cargando usuarios...</p>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Crear/Editar Rol -->
+<div id="modal-rol" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>
+                <i class="bi bi-shield-plus"></i>
+                <span id="modal-rol-title">Crear Rol</span>
+            </h2>
+            <button class="close-btn" onclick="cerrarModal('modal-rol')">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+        <form id="form-rol" onsubmit="guardarRol(event)">
+            <input type="hidden" id="rol-id">
+            
+            <div class="form-group">
+                <label>Nombre del Rol *</label>
+                <input type="text" id="rol-nombre" placeholder="Ej: Gerente de Ventas" required>
+            </div>
+
+            <div class="form-group">
+                <label>Descripción</label>
+                <textarea id="rol-descripcion" rows="3" placeholder="Describe las responsabilidades de este rol..."></textarea>
+            </div>
+
+            <div class="permissions-section">
+                <h3>
+                    <i class="bi bi-key"></i>
+                    Permisos
+                </h3>
+                <div class="permissions-grid">
+                    <div class="permission-item">
+                        <input type="checkbox" id="perm-usuarios" value="usuarios">
+                        <label for="perm-usuarios">
+                            <i class="bi bi-people"></i>
+                            Gestionar Usuarios
+                        </label>
+                    </div>
+                    <div class="permission-item">
+                        <input type="checkbox" id="perm-productos" value="productos">
+                        <label for="perm-productos">
+                            <i class="bi bi-box"></i>
+                            Gestionar Productos
+                        </label>
+                    </div>
+                    <div class="permission-item">
+                        <input type="checkbox" id="perm-inventario" value="inventario">
+                        <label for="perm-inventario">
+                            <i class="bi bi-boxes"></i>
+                            Gestionar Inventario
+                        </label>
+                    </div>
+                    <div class="permission-item">
+                        <input type="checkbox" id="perm-ordenes" value="ordenes">
+                        <label for="perm-ordenes">
+                            <i class="bi bi-receipt"></i>
+                            Gestionar Órdenes
+                        </label>
+                    </div>
+                    <div class="permission-item">
+                        <input type="checkbox" id="perm-reportes" value="reportes">
+                        <label for="perm-reportes">
+                            <i class="bi bi-graph-up"></i>
+                            Ver Reportes
+                        </label>
+                    </div>
+                    <div class="permission-item">
+                        <input type="checkbox" id="perm-roles" value="roles">
+                        <label for="perm-roles">
+                            <i class="bi bi-shield"></i>
+                            Gestionar Roles
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="cerrarModal('modal-rol')">
+                    Cancelar
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle"></i>
+                    Guardar Rol
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Ver Detalles de Roles de Usuario -->
+<div id="modal-detalles-usuario" class="modal">
+    <div class="modal-content modal-large">
+        <div class="modal-header">
+            <h2>
+                <i class="bi bi-person-badge"></i>
+                <span id="usuario-detalle-nombre">Detalles de Usuario</span>
+            </h2>
+            <button class="close-btn" onclick="cerrarModal('modal-detalles-usuario')">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="user-info-card">
+                <div class="user-avatar">
+                    <i class="bi bi-person-circle"></i>
+                </div>
+                <div class="user-info">
+                    <h3 id="detalle-nombre"></h3>
+                    <p id="detalle-email"></p>
+                    <span class="badge activo" id="detalle-estado">Activo</span>
+                </div>
+            </div>
+
+            <div class="roles-detail-section">
+                <h3>
+                    <i class="bi bi-shield-check"></i>
+                    Roles Asignados
+                </h3>
+                <div id="detalle-roles-lista">
+                    <!-- Roles will be populated here -->
+                </div>
+            </div>
+
+            <div class="actions-section">
+                <button onclick="mostrarAsignarRolQuick()" class="btn btn-success">
+                    <i class="bi bi-plus-circle"></i>
+                    Asignar Nuevo Rol
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Confirmar Revocación -->
+<div id="modal-confirmar-revocar" class="modal">
+    <div class="modal-content modal-small">
+        <div class="modal-header">
+            <h2>
+                <i class="bi bi-exclamation-triangle"></i>
+                Confirmar Revocación
+            </h2>
+            <button class="close-btn" onclick="cerrarModal('modal-confirmar-revocar')">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p>¿Estás seguro de que deseas revocar el rol <strong id="revocar-rol-nombre"></strong> del usuario <strong id="revocar-usuario-nombre"></strong>?</p>
+            <p class="warning-text">
+                <i class="bi bi-info-circle"></i>
+                Esta acción quitará los permisos asociados a este rol.
+            </p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="cerrarModal('modal-confirmar-revocar')">
+                Cancelar
+            </button>
+            <button type="button" class="btn btn-danger" onclick="confirmarRevocacion()">
+                <i class="bi bi-x-circle"></i>
+                Sí, Revocar Rol
+            </button>
+        </div>
+    </div>
+</div>
+
+{% block customJS %}
+<script src="{{ url_for('static', filename='js/admin/roles.js') }}"></script>
+{% endblock %}
+{% endblock %}
